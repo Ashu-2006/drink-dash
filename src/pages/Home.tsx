@@ -26,6 +26,7 @@ import {
   Stars,
   reduced,
 } from "../components/primitives";
+import { NextIcon } from "../components/icons";
 import {
   BRAND,
   concernOf,
@@ -40,6 +41,9 @@ import { StampTypeCard } from "../motion/stamptype/StampTypeCard";
 import "./home.css";
 import { defaultPack } from "../lib/cart";
 import type { AddFn } from "../lib/cart";
+import { HowItWorks } from "../components/HowItWorks";
+import { MarkTexture } from "../components/Mark";
+import { bottleFor, img } from "../lib/media";
 
 export default function Home({ onAdd }: { onAdd: AddFn }) {
   /* Lenis on Home only. The product and detail pages use native scroll,
@@ -62,6 +66,7 @@ export default function Home({ onAdd }: { onAdd: AddFn }) {
       <Hero />
       <Marquee items={BRAND.marquee} tone="ink" />
       <LineUp onAdd={onAdd} />
+      <HowItWorks />
       <Vocabulary />
       <Standards />
       <Why />
@@ -99,6 +104,11 @@ function Hero() {
   return (
     <div ref={wrap} className="theme-glow">
       <Band tone="base" clip="bottom" overlap wide>
+        {/* The mark, tiled. The cartons print the same device, so the hero
+            ground carries the packaging texture rather than a flat fill. Low
+            enough that ink on coral keeps its 6.79 against the lighter of the
+            two tones the texture creates. */}
+        <MarkTexture tile={168} angle={-12} opacity={0.05} />
         <div className="shell hero">
           <div className="hero__copy">
             <p className="t-label">Wellness shots</p>
@@ -149,8 +159,21 @@ function LineUp({ onAdd }: { onAdd: AddFn }) {
         <div className="pgrid">
           {products.map((p) => (
             <article key={p.handle} className={`pcard theme-${p.theme}`}>
+              {/* The cut-out sits directly on the card's own tint, so the
+                  card reads as one object rather than a photo pasted into a
+                  frame. Falls back to the packshot if a bottle is missing. */}
               <Link to={`/products/${p.handle}`} className="pcard__media">
-                <Shot basename={p.images[0]} alt={`${p.name}, ${p.descriptor}`} ratio="1 / 1" />
+                {bottleFor(p.handle) ? (
+                  <img
+                    className="pcard__bottle"
+                    {...img(bottleFor(p.handle)!)}
+                    alt={`${p.name}, ${p.descriptor}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <Shot basename={p.images[0]} alt={`${p.name}, ${p.descriptor}`} ratio="1 / 1" />
+                )}
               </Link>
 
               <div className="pcard__body">
@@ -187,8 +210,8 @@ function LineUp({ onAdd }: { onAdd: AddFn }) {
                   >
                     {defaultPack(p.handle) ? "Add to cart" : "Out of stock"}
                   </Button>
-                  <Link to={`/products/${p.handle}`} className="t-body-s pcard__more">
-                    See the formula
+                  <Link to={`/products/${p.handle}`} className="t-body-s pcard__more link-arrow">
+                    See the formula <NextIcon size="1em" />
                   </Link>
                 </div>
               </div>
@@ -435,7 +458,7 @@ function Diaries() {
               <span className="t-data diary__num">{String(i + 1).padStart(2, "0")}</span>
               <h3 className="t-heading-s diary__title">{post.title}</h3>
               <p className="t-body-s t-muted">{post.blurb}</p>
-              <span className="t-label diary__more">Read more</span>
+              <span className="t-label diary__more link-arrow">Read more <NextIcon size="1em" /></span>
             </article>
           ))}
         </div>
@@ -444,9 +467,17 @@ function Diaries() {
       <div className="social">
         <p className="t-heading-m">{BRAND.social.title}</p>
         <p className="t-data social__handle">{BRAND.social.handle}</p>
+        {/* The only human photography in the set leads the strip, because a
+            social wall of packshots is not social. */}
         <div className="social__strip scroller">
-          {products.flatMap((p) => p.images.slice(0, 3)).map((img) => (
-            <img key={img} src={`/media/${img}.jpg`} alt="" loading="lazy" />
+          <img
+            className="social__lead"
+            {...img("people-sofa")}
+            loading="lazy"
+            decoding="async"
+          />
+          {products.flatMap((p) => p.images.slice(0, 3)).map((basename) => (
+            <img key={basename} src={`/media/${basename}.jpg`} alt="" loading="lazy" />
           ))}
         </div>
       </div>

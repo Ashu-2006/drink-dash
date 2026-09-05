@@ -268,6 +268,46 @@ export const BRAND = {
       },
     ],
   },
+  /* How it works. Every line is the brand's own, pulled from the ritual
+     kicker, the per-product ritual blocks, HOW TO USE, and the Recommended
+     Pack footnote. The four verbs are the kicker plus the results horizon the
+     brand itself sets; none of the copy is written by us. */
+  howItWorks: {
+    eyebrow: "How it works",
+    title: "Grab it Shake it Dash it",
+    lede:
+      "A shot is the whole ritual. There is nothing to measure, nothing to mix and nothing to clean.",
+    steps: [
+      {
+        verb: "Grab it",
+        line: "No Water, No Mixing, No Drama.",
+        detail:
+          "Sixty millilitres, ready to drink, straight from the fridge. Tastes best when chilled.",
+        tone: "glow" as const,
+      },
+      {
+        verb: "Shake it",
+        line: "Just Shake, Twist, Dash.",
+        detail:
+          "Shake well before opening. The actives settle, which is what happens when nothing is holding them in suspension artificially.",
+        tone: "burn" as const,
+      },
+      {
+        verb: "Dash it",
+        line: "Take one 60 ml shot daily.",
+        detail:
+          "One a day, at whatever hour you will actually keep. Morning suits the metabolic shot; the other two do not mind.",
+        tone: "volume" as const,
+      },
+      {
+        verb: "Keep it",
+        line: "For noticeable results, we recommend a 30-day ritual.",
+        detail:
+          "The formulations are built for consistency over intensity. Thirty days is the horizon the brand sets, not a marketing round number.",
+        tone: "ink" as const,
+      },
+    ],
+  },
   social: { title: "TAG IT, DASH IT.", handle: "@drinkdash.in" },
   newsletter: {
     title: "A SHOT OF WHAT'S UNFOLDING, STRAIGHT TO YOUR INBOX",

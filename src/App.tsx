@@ -14,6 +14,7 @@ import { CartDrawer } from "./components/CartDrawer";
 import { SearchOverlay } from "./components/SearchOverlay";
 import { SearchProvider } from "./lib/search";
 import { GooDefs } from "./motion/liquid/LiquidBite";
+import { DevAnnotations } from "./dev/DevAnnotations";
 
 /* The cart lives above the router so it survives navigation, and every page
    reads it from context rather than being handed a callback chain. */
@@ -56,6 +57,9 @@ function Shell() {
       <Footer />
       <CartDrawer />
       <SearchOverlay />
+      {/* Design review tooling. Renders nothing outside development and is
+          stripped from the production bundle entirely. */}
+      <DevAnnotations />
     </>
   );
 }

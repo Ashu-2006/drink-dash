@@ -12,7 +12,14 @@ import { Band, Reveal, SectionHead, SplitHeading, Button } from "../components/p
 import { Link } from "react-router-dom";
 import { BRAND, products } from "../lib/catalog";
 import { diaries } from "../lib/diaries";
+import { img } from "../lib/media";
+import type { MediaKey } from "../lib/media";
+import { MarkDraw, MarkTexture } from "../components/Mark";
 import "./dashlife.css";
+
+/* Pictures for the three selection principles, in the page's own order:
+   research, then formulation, then what gets left out. */
+const CUT_ART: MediaKey[] = ["life-flask", "life-scientist", "life-data"];
 import { useTitle } from "../lib/useTitle";
 
 /* Verbatim from the live About Us page. */
@@ -84,6 +91,11 @@ export default function DashLife() {
             ))}
           </div>
         </header>
+
+        {/* A 6:1 shelf strip. It is the only image in the set shaped like a
+            band, so it is the only one that can run the full width without
+            being cropped into something it was not shot as. */}
+        <img className="life-strip" {...img("life-banner")} loading="eager" />
       </Band>
 
       {/* Two principles, set as a pair rather than a list, because they are a
@@ -91,8 +103,14 @@ export default function DashLife() {
       <Band tone="cream">
         <Reveal selector=".life-prin" stagger={0.1}>
           <div className="life-prins">
-            {LIFE.principles.map((p) => (
+            {LIFE.principles.map((p, i) => (
               <article className="life-prin" key={p.title}>
+                <img
+                  className="life-prin__img"
+                  {...img(i === 0 ? "life-bench" : "life-fridge")}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <h2 className="t-heading-m">{p.title}</h2>
                 <p className="t-body t-muted">{p.body}</p>
               </article>
@@ -102,13 +120,21 @@ export default function DashLife() {
       </Band>
 
       <Band tone="soft">
-        <SectionHead eyebrow="How it is made" title={LIFE.expertsTitle} />
         <div className="life-experts">
-          {LIFE.experts.map((p) => (
-            <p className="t-body" key={p.slice(0, 32)}>
-              {p}
-            </p>
-          ))}
+          <div className="life-experts__copy">
+            <SectionHead eyebrow="How it is made" title={LIFE.expertsTitle} />
+            {LIFE.experts.map((p) => (
+              <p className="t-body" key={p.slice(0, 32)}>
+                {p}
+              </p>
+            ))}
+          </div>
+          <img
+            className="life-experts__img"
+            {...img("life-scientist")}
+            loading="lazy"
+            decoding="async"
+          />
         </div>
 
         <Reveal selector=".life-cut" stagger={0.08}>
@@ -119,6 +145,12 @@ export default function DashLife() {
             </div>
             {LIFE.cut.map((c, i) => (
               <article className="life-cut" key={c.title}>
+                <img
+                  className="life-cut__img"
+                  {...img(CUT_ART[i])}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <p className="t-data life-cut__n">{String(i + 1).padStart(2, "0")}</p>
                 <h3 className="t-heading-s">{c.title}</h3>
                 <p className="t-body-s t-muted">{c.body}</p>
@@ -129,12 +161,17 @@ export default function DashLife() {
       </Band>
 
       <Band tone="ink">
+        <MarkTexture tile={190} angle={-10} opacity={0.05} />
         <div className="life-tested">
           <div>
             <h2 className="t-display-xl">{LIFE.testedTitle}</h2>
             <p className="t-body life-tested__lede">{LIFE.testedLede}</p>
           </div>
           <div>
+            {/* The mark strokes itself on as the band scrolls through. It is
+                the only place the logo is drawn rather than printed, which is
+                what stops it being a sticker. */}
+            <MarkDraw size={110} className="life-tested__mark" />
             <p className="t-label life-tested__sub">{LIFE.testedSub}</p>
             <ul className="life-tested__list">
               {LIFE.tested.map((t) => (

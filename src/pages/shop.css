@@ -256,3 +256,35 @@
 .bundle__foot .t-data { font-size: var(--type-heading-s); font-weight: 600; }
 
 .bundles__foot { margin-top: var(--s-7); max-width: 44em; }
+
+/* --------------------------------------------------------------------------
+   Cut-out renders.
+
+   The band ground is already the product's colour, so the bottle sits on it
+   directly with no plate behind it. contain, never cover: this is an object,
+   and cropping a bottle to fill a square cuts the cap off.
+   -------------------------------------------------------------------------- */
+
+.sku__bottle {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  filter: drop-shadow(0 1.5rem 2rem rgba(35, 31, 26, 0.2));
+}
+
+.gcard__bottle {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  padding: var(--s-4);
+  background: var(--theme-soft);
+  transition: transform var(--dur-5) var(--ease-smooth);
+}
+
+.gcard:hover .gcard__bottle {
+  transform: scale(1.05) rotate(-1.5deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gcard:hover .gcard__bottle { transform: none; }
+}

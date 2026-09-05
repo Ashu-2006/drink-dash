@@ -17,6 +17,7 @@ import { Button } from "./primitives";
 import { QTY_MAX, orderTotal, shippingFor, useCart } from "../lib/cart";
 import { COMMERCE, money } from "../lib/catalog";
 import "./cart.css";
+import { CloseIcon, MinusIcon, PlusIcon, RemoveIcon } from "./icons";
 
 export function CartDrawer() {
   const cart = useCart();
@@ -98,8 +99,9 @@ export function CartDrawer() {
             onClick={() => setOpen(false)}
             ref={closer}
             tabIndex={open ? 0 : -1}
+            aria-label="Close cart"
           >
-            Close
+            <CloseIcon size="1.35em" />
           </button>
         </header>
 
@@ -164,7 +166,7 @@ export function CartDrawer() {
                           aria-label={l.qty === 1 ? "Remove" : "Decrease quantity"}
                           tabIndex={open ? 0 : -1}
                         >
-                          &minus;
+                          <MinusIcon size="1.1em" />
                         </button>
                         <span className="t-data" aria-live="off">
                           {l.qty}
@@ -176,15 +178,16 @@ export function CartDrawer() {
                           aria-label="Increase quantity"
                           tabIndex={open ? 0 : -1}
                         >
-                          +
+                          <PlusIcon size="1.1em" />
                         </button>
                       </div>
                       <button
                         type="button"
-                        className="cart__remove t-body-s"
+                        className="cart__remove link-arrow t-body-s"
                         onClick={() => cart.remove(l.key)}
                         tabIndex={open ? 0 : -1}
                       >
+                        <RemoveIcon size="1em" />
                         Remove
                       </button>
                     </div>

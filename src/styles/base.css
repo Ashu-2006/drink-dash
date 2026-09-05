@@ -682,3 +682,75 @@ table {
   user-select: none;
 }
 .inkcard canvas { width: 100%; height: 100%; display: block; }
+
+/* --------------------------------------------------------------------------
+   Icons
+
+   Every icon inherits colour and sizes in em, so it recolours with its theme
+   band and scales with the text beside it. See components/icons.tsx.
+   -------------------------------------------------------------------------- */
+
+.chip svg,
+.btn svg,
+.disc__btn svg {
+  flex-shrink: 0;
+}
+
+/* A square chip for an icon with no label. Keeps the 48px target without the
+   horizontal padding a labelled chip needs. */
+.chip--icon {
+  padding-inline: 0;
+  width: var(--hit-target);
+  justify-content: center;
+}
+
+/* The disclosure sign was two CSS pseudo elements faking a plus. It is a real
+   icon now, and it rotates rather than morphing, which reads as one object
+   turning instead of two bars animating independently. */
+.disc__icon,
+.pfaq__icon {
+  flex-shrink: 0;
+  transition: transform var(--dur-3) var(--ease-smooth);
+}
+
+.disc--on .disc__icon,
+.pfaq__item--on .pfaq__icon {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disc__icon,
+  .pfaq__icon { transition: none; }
+}
+
+/* A link that ends in an arrow: the arrow nudges on hover rather than the whole
+   link moving, so the text stays where the eye left it. */
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.link-arrow svg {
+  transition: transform var(--dur-3) var(--ease-smooth);
+}
+
+.link-arrow:hover svg,
+.link-arrow:focus-visible svg {
+  transform: translateX(0.25em);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link-arrow:hover svg,
+  .link-arrow:focus-visible svg { transform: none; }
+}
+
+/* The trust row is a list of facts, each led by its own mark. */
+.trust > li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-3);
+  align-items: start;
+}
+
+.trust > li svg { margin-top: 0.1em; opacity: 0.75; }

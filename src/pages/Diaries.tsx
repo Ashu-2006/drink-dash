@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import { Band, Reveal, SplitHeading, Button } from "../components/primitives";
 import { diaries } from "../lib/diaries";
 import { byHandle } from "../lib/catalog";
+import { img } from "../lib/media";
 import "./diaries.css";
 import { useTitle } from "../lib/useTitle";
 
@@ -65,7 +66,7 @@ export default function Diaries() {
           <Reveal>
             <article className={`dia-lead theme-${lead.theme}`}>
               <Link to={`/dash-diaries/${lead.slug}`} className="dia-lead__media">
-                <img src={`/media/${lead.image}.jpg`} alt="" loading="eager" />
+                <img className="dia-art" {...img(lead.art)} loading="eager" />
               </Link>
               <div className="dia-lead__body">
                 <p className="t-label t-muted">
@@ -90,7 +91,7 @@ export default function Diaries() {
             {(useLead ? rest : sorted).map((d) => (
               <article className={`dia-card theme-${d.theme}`} key={d.slug}>
                 <Link to={`/dash-diaries/${d.slug}`} className="dia-card__media">
-                  <img src={`/media/${d.image}.jpg`} alt="" loading="lazy" />
+                  <img className="dia-art" {...img(d.art)} loading="lazy" />
                 </Link>
                 <p className="t-label t-muted">
                   <time dateTime={d.iso}>{d.date}</time> · {d.readingMinutes} min

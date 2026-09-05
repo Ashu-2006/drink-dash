@@ -1,0 +1,194 @@
+/* ==========================================================================
+   Ingredient rail: tilted cards on a native horizontal scroller.
+   ========================================================================== */
+
+.ingr {
+  margin-top: var(--s-6);
+}
+
+.ingr__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+
+.ingr__hint {
+  margin: 0;
+}
+
+.ingr__nav {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.ingr__arrow {
+  width: var(--hit-target);
+  height: var(--hit-target);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  background: var(--theme-soft);
+  transition: background var(--dur-2) var(--ease-smooth),
+    transform var(--dur-2) var(--ease-soft-bounce), opacity var(--dur-2) linear;
+}
+
+.ingr__arrow:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--cream);
+  transform: scale(1.06);
+}
+
+.ingr__arrow:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------- rail */
+
+.ingr__rail {
+  display: flex;
+  gap: var(--s-4);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  /* Room for the tilt and the hover lift, which both overflow the row box.
+     Without it the rotated corners get clipped by the scroll container. */
+  padding: var(--s-5) var(--s-2) var(--s-6);
+  margin-inline: calc(var(--s-2) * -1);
+  scrollbar-width: thin;
+}
+
+.ingr__rail:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ink);
+  border-radius: var(--radius-card);
+}
+
+.ingr__rail--drag {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  /* Text selection during a drag turns the whole rail blue. */
+  user-select: none;
+}
+
+/* ------------------------------------------------------------------ card */
+
+.ingr__card {
+  flex: 0 0 20rem;
+  scroll-snap-align: center;
+  border-radius: var(--radius-card);
+  background: var(--theme-soft);
+  transform: rotate(var(--tilt));
+  transition: transform var(--dur-4) var(--ease-soft-bounce),
+    background var(--dur-3) var(--ease-smooth),
+    box-shadow var(--dur-3) var(--ease-smooth);
+}
+
+/* Pointing at a card straightens it and lifts it out of the fan. The rest of
+   the deck stays tilted, so the one you are reading is visibly the one you
+   are reading. */
+.ingr__card:hover,
+.ingr__card:focus-within {
+  transform: rotate(0deg) translateY(-0.5rem) scale(1.02);
+  background: var(--theme-pale);
+  z-index: 2;
+  position: relative;
+}
+
+.ingr__inner {
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+  height: 100%;
+  padding: var(--s-5);
+}
+
+.ingr__step {
+  color: var(--theme-deep);
+  margin: 0;
+}
+
+.ingr__figure {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  margin-block: var(--s-2);
+}
+
+.ingr__art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* The cut-outs were shot on white and keep a faint halo. Multiply drops it
+     into the card ground so they read as printed on it, not pasted over it. */
+  mix-blend-mode: multiply;
+  transition: transform var(--dur-5) var(--ease-smooth);
+}
+
+.ingr__card:hover .ingr__art,
+.ingr__card:focus-within .ingr__art {
+  transform: scale(1.06);
+}
+
+.ingr__figure-dose {
+  font-size: var(--type-heading-m);
+  color: var(--theme-deep);
+  opacity: 0.5;
+}
+
+.ingr__role {
+  color: var(--theme-deep);
+  margin: 0;
+}
+
+.ingr__name {
+  /* Ingredient names carry hyphens and parentheses, which Degular Display has
+     no glyphs for in this cut. */
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.ingr__detail {
+  color: var(--muted);
+}
+
+.ingr__dose {
+  margin-top: auto;
+  padding-top: var(--s-4);
+  align-self: end;
+  border-top: var(--hairline-width) solid var(--hairline);
+}
+
+/* ---------------------------------------------------------------- narrow */
+
+@media (max-width: 767px) {
+  .ingr__card {
+    flex-basis: 16rem;
+  }
+  /* The arrows are a pointer affordance. On a touch device the thumb is the
+     control and two buttons are just two things in the way. */
+  .ingr__nav {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ingr__card,
+  .ingr__art,
+  .ingr__arrow {
+    transition: none;
+  }
+  /* The tilt itself stays: it is a static layout choice, not motion. Only the
+     lift on hover is dropped, since that is the part that animates. */
+  .ingr__card:hover,
+  .ingr__card:focus-within {
+    transform: rotate(0deg);
+  }
+  .ingr__card:hover .ingr__art,
+  .ingr__card:focus-within .ingr__art {
+    transform: none;
+  }
+}

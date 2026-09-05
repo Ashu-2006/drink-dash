@@ -369,3 +369,22 @@
   .other:hover,
   .pdp__thumb:hover { transform: none; }
 }
+
+/* --------------------------------------------------------------------------
+   Gallery.
+
+   The first frames are cut-out renders and the rest are photographs, so the
+   frame has to switch fit per shot. A single object-fit would either crop the
+   bottle or letterbox the photography.
+   -------------------------------------------------------------------------- */
+
+.pdp__hero {
+  width: 100%;
+  object-fit: cover;
+}
+
+.pdp__hero--contain {
+  object-fit: contain;
+  padding: var(--s-6);
+  background: var(--theme-soft);
+}

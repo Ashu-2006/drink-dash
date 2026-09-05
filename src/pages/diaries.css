@@ -38,6 +38,16 @@
   border-radius: var(--radius-media);
 }
 
+/* Ingredient cut-outs are objects on a ground, not photographs filling a
+   frame: they get contain and padding so nothing is cropped, and they sit on
+   the article's own tint. */
+.dia-art {
+  object-fit: contain;
+  background: var(--theme-soft);
+  padding: var(--s-5);
+  mix-blend-mode: normal;
+}
+
 .dia-lead__body {
   display: grid;
   gap: var(--s-3);
@@ -73,6 +83,10 @@
   transition: transform var(--dur-5) var(--ease-smooth);
 }
 
+.dia-card__media .dia-art {
+  padding: var(--s-4);
+}
+
 .dia-card__media {
   overflow: hidden;
   border-radius: var(--radius-media);
@@ -104,10 +118,28 @@
 
 /* ---------------------------------------------------------------- article */
 
+/* A two-up so the subject sits beside the title rather than pushing it down
+   the page. An explicit wrapper rather than :has() on the band: this is
+   layout, and layout should not depend on a selector that silently does
+   nothing on a browser that lacks it. */
+.art-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--s-7);
+  align-items: center;
+}
+
 .art-hero {
   display: grid;
   gap: var(--s-4);
   max-width: 52rem;
+}
+
+.art-hero__art {
+  width: 100%;
+  max-width: 26rem;
+  justify-self: end;
+  object-fit: contain;
 }
 
 .art-hero__title {
@@ -185,6 +217,14 @@
 }
 
 @media (max-width: 991px) {
+  .art-top {
+    grid-template-columns: 1fr;
+    gap: var(--s-5);
+  }
+  .art-hero__art {
+    max-width: 18rem;
+    justify-self: start;
+  }
   .dia-grid,
   .dia-grid--rest {
     grid-template-columns: repeat(2, minmax(0, 1fr));

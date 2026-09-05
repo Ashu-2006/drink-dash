@@ -1,0 +1,148 @@
+/* ==========================================================================
+   How it works: the dealt deck.
+   ========================================================================== */
+
+.hiw {
+  position: relative;
+  padding-block: var(--section-pad);
+  background: var(--cream);
+  /* The fanned state pushes cards left of the shell and the rotation lifts
+     their corners past it. Clipping here rather than on .band keeps the deal
+     from causing a horizontal scrollbar mid-animation. */
+  overflow: hidden;
+}
+
+.hiw__head {
+  display: grid;
+  gap: var(--s-4);
+  max-width: 46rem;
+  margin-bottom: var(--s-8);
+}
+
+.hiw__lede {
+  max-width: 38rem;
+}
+
+/* ------------------------------------------------------------------- deck */
+
+.hiw__deck {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: stretch;
+  /* Cards are dealt from a pile that starts left of the row. The row itself
+     never moves. */
+  padding-block: var(--s-2);
+}
+
+.hiw__card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  min-height: 30rem;
+  color: var(--ink);
+  /* will-change is set only on the property that actually animates. On the
+     whole card it would promote four large layers for the life of the page. */
+  will-change: transform;
+}
+
+.hiw__card--glow {
+  background: var(--glow-base);
+}
+.hiw__card--burn {
+  background: var(--burn-base);
+}
+.hiw__card--volume {
+  background: var(--volume-base);
+}
+
+/* The closing card inverts. Cream on ink is 13.2, and it marks the step that
+   is about time rather than about the bottle. */
+.hiw__card--ink {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.hiw__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+  height: 100%;
+  padding: var(--s-5);
+}
+
+.hiw__step {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.hiw__figure {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  margin-block: var(--s-2);
+}
+
+.hiw__bottle {
+  width: 78%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 1.25rem 1.5rem rgba(35, 31, 26, 0.22));
+}
+
+.hiw__verb {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: var(--tr-heading);
+}
+
+.hiw__line {
+  font-weight: 600;
+}
+
+.hiw__detail {
+  opacity: 0.78;
+  margin-top: auto;
+  padding-top: var(--s-4);
+}
+
+/* ---------------------------------------------------------------- narrow */
+
+@media (max-width: 991px) {
+  .hiw__deck {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hiw__card {
+    min-height: 26rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .hiw__deck {
+    grid-template-columns: 1fr;
+  }
+  .hiw__card {
+    min-height: 0;
+  }
+  .hiw__figure {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+/* GSAP writes transforms inline, and an inline style beats any selector. The
+   component already skips the tween when reduced motion is set at mount, so
+   this only matters when the OS setting is changed with the page open, and
+   there is no way to out-specify an inline style without the flag. It is the
+   one !important in the app. */
+@media (prefers-reduced-motion: reduce) {
+  .hiw__card {
+    will-change: auto;
+    transform: none !important;
+  }
+}

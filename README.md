@@ -56,6 +56,38 @@ mistake a proposal for real merchandising.
 `src/lib/previous-data.ts` holds the earlier iteration's content, most of which was
 invented before that audit. It is used only by `/previous` and never by a live page.
 
+## Icons
+
+Phosphor, at regular weight. Every icon the interface uses is named and
+re-exported from `src/components/icons.tsx`, and pages import from there rather
+than from the library. An icon set has thousands of glyphs and six weights;
+without a single door, six pages pick six different arrows and the interface
+quietly stops looking designed.
+
+Icons inherit `currentColor` and size in `em`, so they recolour with the theme
+band they sit in and scale with the text beside them. That matters here because
+the page swaps theme colour per product section.
+
+## Design review tooling
+
+[Agentation](https://www.agentation.com) is mounted in development only. Click
+the toolbar in the bottom right, click any element, write a note, and it
+produces markdown carrying the CSS selector, element path, component tree and
+computed styles, which a coding agent can act on directly.
+
+It is a devDependency and must never ship: rendering it in production would put
+an annotation toolbar in front of visitors and add about 400 KB to the bundle.
+The gate is one `import.meta.env.DEV` check in `src/dev/DevAnnotations.tsx`,
+which Vite replaces with a literal `false` so the dynamic import is unreachable
+and the chunk is dropped.
+
+That gate is easy to break by accident, so the outcome is asserted rather than
+trusted:
+
+```bash
+npm run verify:prod   # builds, then fails if the bundle contains agentation
+```
+
 ## Fonts
 
 `public/fonts` contains Champ and Degular Display. Both are commercial typefaces and the

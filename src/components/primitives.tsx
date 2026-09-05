@@ -6,6 +6,7 @@
 import { useRef, useState } from "react";
 import type { ReactNode, ButtonHTMLAttributes, MouseEventHandler } from "react";
 import { Link } from "react-router-dom";
+import { CaretIcon, PaymentIcon, ReturnsIcon, ShippingIcon } from "./icons";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -380,13 +381,21 @@ export function TrustRow() {
   return (
     <ul className="trust t-body-s">
       <li>
-        {COMMERCE.shipping.text} · {COMMERCE.taxNote.text}
+        <ShippingIcon />
+        <span>
+          {COMMERCE.shipping.text} · {COMMERCE.taxNote.text} · {COMMERCE.dispatch.text}
+        </span>
       </li>
-      <li>{COMMERCE.dispatch.text}</li>
       <li>
-        {COMMERCE.returns.text} · {COMMERCE.cod.text}
+        <ReturnsIcon />
+        <span>
+          {COMMERCE.returns.text} · {COMMERCE.cod.text}
+        </span>
       </li>
-      <li className="trust__pay">{COMMERCE.paymentMethods.join(" · ")}</li>
+      <li>
+        <PaymentIcon />
+        <span className="trust__pay">{COMMERCE.paymentMethods.join(" · ")}</span>
+      </li>
     </ul>
   );
 }
@@ -415,7 +424,7 @@ export function Disclose({
         onClick={() => setOpen((v) => !v)}
       >
         <span className="t-heading-s">{summary}</span>
-        <span className="disc__sign" aria-hidden="true" />
+        <CaretIcon className="disc__icon" />
       </button>
       <div className="disc__body" ref={body} hidden={!open}>
         {children}

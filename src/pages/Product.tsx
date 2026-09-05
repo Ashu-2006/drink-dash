@@ -15,21 +15,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 import {
   Band,
   Button,
   Data,
   Disclose,
   PackSelector,
-  Ref,
   Reveal,
   SectionHead,
   Shot,
   Stars,
   TrustRow,
-  reduced,
 } from "../components/primitives";
 import { StickyBuyBar } from "../components/Chrome";
 import { PathRule } from "../components/Logo";
@@ -46,6 +42,8 @@ import {
 import type { Product as P } from "../lib/catalog";
 import "./pdp.css";
 import type { AddFn } from "../lib/cart";
+import { IngredientRail } from "../components/IngredientRail";
+import { galleryFor } from "../lib/media";
 import { useTitle } from "../lib/useTitle";
 
 export default function Product({ onAdd }: { onAdd: AddFn }) {
@@ -134,28 +132,40 @@ function Hero({
 }) {
   const [shot, setShot] = useState(0);
   const save = savingPercent(pack);
+  const gallery = galleryFor(product.handle, product.images);
 
   return (
     <Band tone="pale" clip="bottom" overlap>
       <div className="pdp">
         <div className="pdp__gallery">
-          <Shot
-            basename={product.images[shot]}
-            alt={`${product.name}, ${product.descriptor}`}
-            ratio="1 / 1"
-            priority
+          {/* The gallery now leads with the cut-out render, then the carton
+              set, then the original photography. `contain` marks the frames
+              that are objects rather than scenes, so a bottle is never
+              cropped to fill a square. */}
+          <img
+            className={`shot pdp__hero${gallery[shot]?.contain ? " pdp__hero--contain" : ""}`}
+            src={gallery[shot]?.src}
+            alt={gallery[shot]?.alt || `${product.name}, ${product.descriptor}`}
+            style={{ aspectRatio: "1 / 1" }}
+            loading="eager"
+            decoding="sync"
           />
           <div className="pdp__thumbs scroller">
-            {product.images.map((img, i) => (
+            {gallery.map((g, i) => (
               <button
-                key={img}
+                key={g.src}
                 type="button"
                 className={`pdp__thumb${i === shot ? " pdp__thumb--on" : ""}`}
-                aria-label={`View image ${i + 1}`}
+                aria-label={`View image ${i + 1} of ${gallery.length}`}
                 aria-pressed={i === shot}
                 onClick={() => setShot(i)}
               >
-                <img src={`/media/${img}.jpg`} alt="" loading="lazy" />
+                <img
+                  src={g.src}
+                  alt=""
+                  loading="lazy"
+                  style={g.contain ? { objectFit: "contain" } : undefined}
+                />
               </button>
             ))}
           </div>
@@ -234,34 +244,6 @@ function Hero({
     formula, which makes the panel readable at a glance without inventing a
     statistic. */
 function Formula({ product }: { product: P }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const parse = (d?: string) => {
-    if (!d) return 0;
-    const n = parseFloat(d);
-    if (Number.isNaN(n)) return 0;
-    if (d.includes("mcg")) return n / 1000;
-    if (d.includes("g") && !d.includes("mg") && !d.includes("mcg")) return n * 1000;
-    return n;
-  };
-  const max = Math.max(...product.formula.map((f) => parse(f.dose)));
-
-  useGSAP(
-    () => {
-      if (reduced() || !ref.current) return;
-      const bars = ref.current.querySelectorAll<HTMLElement>(".fml__fill");
-      gsap.from(bars, {
-        scaleX: 0,
-        transformOrigin: "left center",
-        duration: 0.8,
-        ease: "power3.out",
-        stagger: 0.07,
-        scrollTrigger: { trigger: ref.current, start: "top 80%", once: true },
-      });
-    },
-    { scope: ref }
-  );
-
   return (
     <Band tone="cream" id="formula">
       <SectionHead
@@ -270,33 +252,16 @@ function Formula({ product }: { product: P }) {
         lede={product.ingredientsLede}
       />
 
-      <div className="fml" ref={ref}>
-        {product.formula.map((f, i) => {
-          const share = f.dose && max ? Math.max(4, (parse(f.dose) / max) * 100) : 0;
-          return (
-            <article key={f.name} className="fml__row">
-              <div className="fml__head">
-                <h3 className="t-heading-s">
-                  {f.name}
-                  {i === 0 && product.references.length > 0 && <Ref n={1} />}
-                </h3>
-                {f.dose ? (
-                  <span className="t-data fml__dose">{f.dose}</span>
-                ) : (
-                  <span className="t-data fml__dose fml__dose--none">in blend</span>
-                )}
-              </div>
-              <p className="t-label t-muted fml__role">{f.role}</p>
-              {share > 0 && (
-                <div className="fml__bar" aria-hidden="true">
-                  <span className="fml__fill" style={{ width: `${share}%` }} />
-                </div>
-              )}
-              <p className="t-body-s fml__detail">{f.detail}</p>
-            </article>
-          );
-        })}
-      </div>
+      {/* Replaced a stacked list of six paragraphs with a rail. The dose bars
+          that used to sit here compared quantities across the formula, which
+          sounded useful and mostly taught people that vitamin doses differ by
+          three orders of magnitude. The dose is on each card instead, where
+          it sits next to the ingredient it belongs to. */}
+      <IngredientRail
+        entries={product.formula}
+        theme={product.theme}
+        label={product.formulaTitle}
+      />
 
       <p className="t-body-s t-muted fml__note">{product.ingredientsNote}</p>
     </Band>

@@ -13,6 +13,7 @@ import { Band, Button, Reveal } from "../components/primitives";
 import { diaryBySlug, otherDiaries } from "../lib/diaries";
 import { byHandle, fromPrice, money } from "../lib/catalog";
 import { defaultPack, useCart } from "../lib/cart";
+import { img, packFor } from "../lib/media";
 import "./diaries.css";
 import { useTitle } from "../lib/useTitle";
 
@@ -57,6 +58,7 @@ export default function Diary() {
   return (
     <div className={`theme-${article.theme}`}>
       <Band tone="soft" clip="bottom" overlap>
+        <div className="art-top">
         <header className="art-hero">
           <p className="t-label t-muted">
             <Link to="/dash-diaries">The Dash Diaries</Link> ·{" "}
@@ -66,6 +68,10 @@ export default function Diary() {
           <h1 className="t-heading-l art-hero__title">{article.title}</h1>
           <p className="t-body art-hero__dek">{article.dek}</p>
         </header>
+        {/* The subject of the article, cut out and floated on the band. A
+            packshot here would be selling before the argument is made. */}
+        <img className="art-hero__art" {...img(article.art)} loading="eager" />
+        </div>
       </Band>
 
       <Band tone="cream">
@@ -108,10 +114,12 @@ export default function Diary() {
           {product && (
             <aside className="art-buy">
               <img
-                src={`/media/${product.images[0]}.jpg`}
-                alt=""
                 className="art-buy__img"
+                {...(packFor(product.handle)
+                  ? img(packFor(product.handle)!)
+                  : { src: `/media/${product.images[0]}.jpg`, alt: "" })}
                 loading="lazy"
+                decoding="async"
               />
               <p className="t-label t-muted">The shot in this article</p>
               <h2 className="t-heading-s">{product.name}</h2>
@@ -143,7 +151,7 @@ export default function Diary() {
               {others.map((d) => (
                 <article className={`dia-card theme-${d.theme}`} key={d.slug}>
                   <Link to={`/dash-diaries/${d.slug}`} className="dia-card__media">
-                    <img src={`/media/${d.image}.jpg`} alt="" loading="lazy" />
+                    <img className="dia-art" {...img(d.art)} loading="lazy" />
                   </Link>
                   <p className="t-label t-muted">
                     <time dateTime={d.iso}>{d.date}</time>

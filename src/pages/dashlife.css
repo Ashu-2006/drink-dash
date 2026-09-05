@@ -14,6 +14,16 @@
   max-width: 46rem;
 }
 
+/* The 6:1 shelf strip. Its own ratio is declared so the band does not jump
+   by 200px when the image finally decodes. */
+.life-strip {
+  width: 100%;
+  aspect-ratio: 6 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  margin-top: var(--s-7);
+}
+
 /* ------------------------------------------------------------- principles */
 
 .life-prins {
@@ -30,13 +40,37 @@
   border-top: var(--hairline-width) solid var(--hairline);
 }
 
+.life-prin__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-media);
+  margin-bottom: var(--s-2);
+}
+
 /* ---------------------------------------------------------------- experts */
 
+/* Copy and portrait share the row. The portrait is 3:4 and the copy runs to
+   about 46rem, which is roughly the same height at desktop widths. */
 .life-experts {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--s-8);
+  align-items: center;
+  margin-top: var(--s-5);
+}
+
+.life-experts__copy {
   display: grid;
   gap: var(--s-4);
   max-width: 46rem;
-  margin-top: var(--s-5);
+}
+
+.life-experts__img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius-card);
 }
 
 .life-cuts {
@@ -62,6 +96,14 @@
   background: var(--cream);
 }
 
+.life-cut__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-media);
+  margin-bottom: var(--s-2);
+}
+
 .life-cut__n {
   color: var(--theme-deep);
 }
@@ -78,6 +120,11 @@
 .life-tested__lede {
   margin-top: var(--s-5);
   max-width: 34rem;
+}
+
+.life-tested__mark {
+  color: var(--theme-base);
+  margin-bottom: var(--s-5);
 }
 
 .life-tested__sub {
@@ -142,10 +189,26 @@
   }
 }
 
+@media (max-width: 991px) {
+  .life-experts {
+    grid-template-columns: 1fr;
+    gap: var(--s-6);
+  }
+  /* The portrait is the least load-bearing thing on the page at this width,
+     so it is capped rather than allowed to run a full column. */
+  .life-experts__img {
+    max-width: 26rem;
+    justify-self: start;
+  }
+}
+
 @media (max-width: 767px) {
   .life-prins,
   .life-tested {
     grid-template-columns: 1fr;
     gap: var(--s-6);
+  }
+  .life-strip {
+    aspect-ratio: 3 / 1;
   }
 }

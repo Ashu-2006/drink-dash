@@ -17,6 +17,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSearch } from "../lib/search";
 import { fromPrice, money, products } from "../lib/catalog";
 import { diaries } from "../lib/diaries";
+import { bottleFor, img } from "../lib/media";
 import "./search.css";
 
 const KIND_LABEL: Record<string, string> = {
@@ -149,7 +150,11 @@ export function SearchOverlay() {
                       onClick={() => setOpen(false)}
                       tabIndex={open ? 0 : -1}
                     >
-                      <img src={`/media/${p.images[0]}.jpg`} alt="" loading="lazy" />
+                      {bottleFor(p.handle) ? (
+                        <img {...img(bottleFor(p.handle)!)} alt="" aria-hidden loading="lazy" />
+                      ) : (
+                        <img src={`/media/${p.images[0]}.jpg`} alt="" loading="lazy" />
+                      )}
                       <span className="t-heading-s">{p.name}</span>
                       <span className="t-data t-muted">
                         from {money(fromPrice(p))}

@@ -4,7 +4,11 @@
 
 /* ---------------------------------------------------------------- hero ---- */
 
+/* The tiled mark is absolutely positioned inside the band, so the content
+   needs a stacking context above it. */
 .hero {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   align-items: center;
@@ -79,6 +83,22 @@
 }
 .pcard:hover .pcard__media .shot { transform: scale(1.04); }
 
+/* The cut-out sits on the card's own tint with air around it, so it reads as
+   a bottle on a surface rather than a photograph in a window. */
+.pcard__bottle {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  padding: var(--s-5);
+  background: var(--theme-soft);
+  transition: transform var(--dur-6) var(--ease-smooth);
+}
+
+.pcard:hover .pcard__bottle {
+  transform: scale(1.06) rotate(-1.5deg);
+}
+
 .pcard__body {
   display: flex;
   flex-direction: column;
@@ -129,6 +149,7 @@
 @media (prefers-reduced-motion: reduce) {
   .pcard:hover,
   .pcard:hover .pcard__media .shot { transform: none; }
+  .pcard:hover .pcard__bottle { transform: none; }
 }
 
 /* --------------------------------------------------------------- trio ---- */
@@ -309,6 +330,15 @@
   flex-shrink: 0;
   object-fit: cover;
   border-radius: var(--radius-media);
+}
+
+/* The lead frame is wider because it is the only one with people in it and
+   it is carrying the section. The rest are product stills at a glance size.
+   Selector is scoped rather than flagged !important: `.social__strip img` is
+   the more specific rule, so it has to be out-specified, not shouted over. */
+.social__strip .social__lead {
+  width: 22em;
+  object-position: center 28%;
 }
 
 .chips-row {

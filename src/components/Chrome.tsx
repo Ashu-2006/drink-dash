@@ -12,6 +12,7 @@ import { BRAND, COMMERCE, money, products, tierFor } from "../lib/catalog";
 import { useCart } from "../lib/cart";
 import { useSearch } from "../lib/search";
 import type { Pack, Product } from "../lib/catalog";
+import { CartIcon, CloseIcon, MenuIcon, SearchIcon } from "./icons";
 import "./chrome.css";
 
 /* -------------------------------------------------------------------------- */
@@ -71,18 +72,19 @@ export function Header() {
 
           <div className="hdr__end">
             <button
-              className="chip chip--outline hdr__menu"
+              className="chip chip--outline chip--icon hdr__menu"
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
+              aria-label="Menu"
             >
-              Menu
+              <MenuIcon />
             </button>
             <button
-              className="chip chip--outline"
+              className="chip chip--outline chip--icon"
               onClick={() => search.setOpen(true)}
               aria-label="Search"
             >
-              Search
+              <SearchIcon />
             </button>
             {/* The count is inside the label, not only next to it, so a screen
                 reader is told how many rather than just that a cart exists. */}
@@ -92,7 +94,8 @@ export function Header() {
               aria-label={`Cart, ${cart.count} ${cart.count === 1 ? "item" : "items"}`}
               aria-haspopup="dialog"
             >
-              Cart <span className="t-data">{cart.count}</span>
+              <CartIcon />
+              <span className="t-data">{cart.count}</span>
             </button>
           </div>
         </div>
@@ -122,8 +125,13 @@ export function Header() {
               </li>
             ))}
           </ul>
-          <button className="t-label menu__close" onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
-            Close
+          <button
+            className="menu__close"
+            onClick={() => setOpen(false)}
+            tabIndex={open ? 0 : -1}
+            aria-label="Close menu"
+          >
+            <CloseIcon size="1.5em" />
           </button>
         </div>
       </div>

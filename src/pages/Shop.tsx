@@ -25,6 +25,7 @@ import {
   Stars,
   TrustRow,
 } from "../components/primitives";
+import { NextIcon } from "../components/icons";
 import {
   activeConcerns,
   BAND_LAYOUT_MAX,
@@ -41,6 +42,7 @@ import type { Product } from "../lib/catalog";
 import "./shop.css";
 import { ShopFilters, NoMatches, useShopQuery } from "../components/ShopFilters";
 import { defaultPack } from "../lib/cart";
+import { bottleFor, img, packFor } from "../lib/media";
 import type { AddFn } from "../lib/cart";
 import { useTitle } from "../lib/useTitle";
 
@@ -179,14 +181,29 @@ function SkuBand({ product, onAdd }: { product: Product; onAdd: AddFn }) {
       <Band tone="base" clip="bottom" overlap>
         <div className="sku">
           <div className="sku__media">
-            <Shot
-              basename={product.images[0]}
-              alt={`${product.name}, ${product.descriptor}`}
-              ratio="1 / 1"
-            />
+            {/* The band ground is the product's own colour, so the cut-out
+                sits straight on it with no plate. */}
+            {bottleFor(product.handle) ? (
+              <img
+                className="sku__bottle"
+                {...img(bottleFor(product.handle)!)}
+                alt={`${product.name}, ${product.descriptor}`}
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <Shot
+                basename={product.images[0]}
+                alt={`${product.name}, ${product.descriptor}`}
+                ratio="1 / 1"
+              />
+            )}
             <div className="sku__thumbs scroller">
-              {product.images.slice(1, 4).map((img) => (
-                <img key={img} src={`/media/${img}.jpg`} alt="" loading="lazy" />
+              {packFor(product.handle) && (
+                <img {...img(packFor(product.handle)!)} loading="lazy" />
+              )}
+              {product.images.slice(1, 3).map((basename) => (
+                <img key={basename} src={`/media/${basename}.jpg`} alt="" loading="lazy" />
               ))}
             </div>
           </div>
@@ -225,8 +242,8 @@ function SkuBand({ product, onAdd }: { product: Product; onAdd: AddFn }) {
               >
                 Add to cart · {money(pack.price)}
               </Button>
-              <Link to={`/products/${product.handle}`} className="t-body-s sku__more">
-                Read the full formula and research
+              <Link to={`/products/${product.handle}`} className="t-body-s sku__more link-arrow">
+                Read the full formula and research <NextIcon size="1em" />
               </Link>
             </div>
 
@@ -253,7 +270,16 @@ function Grid({ onAdd, results }: { onAdd: AddFn; results: Product[] }) {
         {results.map((p) => (
           <article key={p.handle} className={`gcard theme-${p.theme}`}>
             <Link to={`/products/${p.handle}`}>
-              <Shot basename={p.images[0]} alt={p.name} ratio="1 / 1" />
+              {bottleFor(p.handle) ? (
+                <img
+                  className="gcard__bottle"
+                  {...img(bottleFor(p.handle)!)}
+                  alt={p.name}
+                  loading="lazy"
+                />
+              ) : (
+                <Shot basename={p.images[0]} alt={p.name} ratio="1 / 1" />
+              )}
             </Link>
             <p className="t-label t-muted">{p.descriptor}</p>
             <h3 className="t-heading-s">

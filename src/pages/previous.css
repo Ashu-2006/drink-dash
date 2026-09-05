@@ -3,9 +3,11 @@
    Tokens only. No shadows.
    ========================================================================== */
 
+/* Bottom LEFT, deliberately: the Agentation dev toolbar is fixed to the bottom
+   right, and the two were stacking on top of each other in development. */
 .archtag {
   position: fixed;
-  right: var(--s-4);
+  left: var(--s-4);
   bottom: var(--s-4);
   z-index: 50;
   padding: 0.5em 0.9em;

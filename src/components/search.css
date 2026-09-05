@@ -169,7 +169,8 @@
 .srch__card img {
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
+  /* Cut-outs, so contain. The card already supplies the ground. */
+  object-fit: contain;
   border-radius: var(--radius-media);
 }
 

@@ -12,6 +12,7 @@
    ========================================================================== */
 
 import type { ThemeKey } from "./catalog";
+import type { MediaKey } from "./media";
 
 /** Slug generator, so a title and its URL can never drift apart. */
 export const diarySlug = (title: string) =>
@@ -45,7 +46,15 @@ export type Diary = {
   theme: ThemeKey;
   /** The shot the article is about, so an article can sell. */
   productHandle: string;
-  /** Image basename in /media. Reuses product photography. */
+  /* Two pictures per article, doing different jobs.
+
+     `art` is the ingredient the article is about, cut out and sitting on the
+     theme ground: it is the subject, and it is what makes a card about
+     glutathione look like it is about glutathione rather than about a bottle.
+
+     `image` is the product photograph, kept for the places that need a filled
+     rectangle rather than a floating object. */
+  art: MediaKey;
   image: string;
   sections: DiarySection[];
 };
@@ -61,6 +70,7 @@ const glutathione: Diary = {
   readingMinutes: 4,
   theme: "glow",
   productHandle: "dash-of-glow",
+  art: "ing-glutathione",
   image: "glow-1",
   sections: [
     {
@@ -144,6 +154,7 @@ const anagain: Diary = {
   readingMinutes: 5,
   theme: "volume",
   productHandle: "dash-of-volume",
+  art: "ing-pea-sprout",
   image: "volume-1",
   sections: [
     {
@@ -239,6 +250,7 @@ const metabolism: Diary = {
   readingMinutes: 5,
   theme: "burn",
   productHandle: "dash-of-burn",
+  art: "ing-green-coffee",
   image: "burn-1",
   sections: [
     {

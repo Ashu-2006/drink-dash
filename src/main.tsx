@@ -4,11 +4,14 @@ import { BrowserRouter } from "react-router-dom";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import App from "./App";
+import { IconDefaults } from "./components/icons";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <IconDefaults>
+        <App />
+      </IconDefaults>
     </BrowserRouter>
   </StrictMode>
 );

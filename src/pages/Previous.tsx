@@ -45,6 +45,7 @@ import {
   oldTrialTrio,
 } from "../lib/previous-data";
 import type { OldProduct } from "../lib/previous-data";
+import { CaretIcon } from "../components/icons";
 import "./previous.css";
 import type { AddFn } from "../lib/cart";
 import { useTitle } from "../lib/useTitle";
@@ -611,7 +612,7 @@ function Faq() {
               onClick={() => setOpen(open === i ? null : i)}
             >
               <span className="t-heading-s">{f.q}</span>
-              <span className="pfaq__sign" aria-hidden="true" />
+              <CaretIcon className="pfaq__icon" />
             </button>
             <div className="pfaq__a" hidden={open !== i}>
               <p className="t-body">{f.a}</p>
