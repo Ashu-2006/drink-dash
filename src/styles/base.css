@@ -609,8 +609,52 @@ table {
 .disc__sign::after { width: 2px; height: 100%; }
 .disc--on .disc__sign::after { transform: scaleY(0); }
 
-.disc__body { padding-bottom: var(--s-5); max-width: 44em; }
+/* The open and close.
+
+   A `grid-template-rows` track from 0fr to 1fr is the only way to tween to an
+   intrinsic height without measuring it, so a two line answer and a six
+   paragraph one open at the same speed and no JS reads layout. The inner
+   element clips its own overflow, which is what lets the track squeeze it.
+
+   Padding lives on .disc__body, never on .disc__panel. Padding on a 0fr track
+   is not collapsed by it, so it leaves a residual strip and the panel never
+   closes all the way.
+
+   Close runs faster than open. Opening is the user asking to read something
+   and wants to feel unhurried; closing is dismissal and should get out of the
+   way. --dur-4 open, --dur-2 close. */
+.disc__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-2) var(--ease-smooth);
+}
+
+.disc--on .disc__panel {
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--dur-4) var(--ease-smooth);
+}
+
+.disc__body {
+  overflow: hidden;
+  padding-bottom: var(--s-5);
+  max-width: 44em;
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-smooth);
+}
+
+.disc--on .disc__body {
+  opacity: 1;
+  transition: opacity var(--dur-4) var(--ease-smooth);
+}
+
 .disc__body > * + * { margin-top: var(--s-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .disc__panel,
+  .disc--on .disc__panel,
+  .disc__body,
+  .disc--on .disc__body { transition: none; }
+}
 
 /* --------------------------------------------------------------------------
    Media and misc

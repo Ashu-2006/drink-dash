@@ -231,13 +231,10 @@
 
 /* --------------------------------------------------------- how it works ---- */
 
-.hiw { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-8); }
-.hiw__lead { margin-top: var(--s-4); }
-.hiw__body > p + p { margin-top: var(--s-4); }
-
-@media (max-width: 61.9375em) {
-  .hiw { grid-template-columns: 1fr; gap: var(--s-5); }
-}
+/* The deck itself lives in components/howitworks.css. The two column prose
+   layout that used to be here also redeclared .hiw, which is the home page
+   deck's section class, and won or lost against it by bundle order. Gone. */
+.pdp-deck { margin-top: var(--s-8); }
 
 /* --------------------------------------------------------- disclosures ---- */
 
@@ -311,19 +308,130 @@
 .rvw__text { text-wrap: pretty; }
 .rvw__name { font-style: normal; color: var(--muted); }
 
+/* Four cards, then the rest on request. The overflow used to dump nine
+   quotes into the page in one grid, which reads as filler rather than as
+   evidence and pushes the ritual band below two more screens of scroll. */
+.rvws__more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--s-6);
+}
+
+/* Only the cards that arrive on the click. The first four are already handled
+   by the scroll reveal and must not run twice. */
+.rvw--late {
+  animation: rvw-late var(--dur-5) var(--ease-smooth) backwards;
+  animation-delay: calc(var(--n, 0) * 0.05s);
+}
+
+@keyframes rvw-late {
+  from { opacity: 0; transform: translateY(0.75rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rvw--late { animation: none; }
+}
+
 /* -------------------------------------------------------------- ritual ---- */
 
-.rit { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: var(--s-8); align-items: start; }
-.rit__title { margin-top: var(--s-3); }
-.rit__line { margin-top: var(--s-3); max-width: 22em; }
+/* Copy left, offer right. The card is the only cream surface in a band that
+   is otherwise a full field of the product colour, so it is the first thing
+   the eye lands on when the band scrolls in. */
+.rit {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: var(--s-8);
+  align-items: start;
+}
 
-.rit__std { display: flex; flex-wrap: wrap; gap: var(--s-2); align-content: start; }
+.rit__title { margin-top: var(--s-3); }
+
+.rit__steps {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1.5px solid rgba(35, 31, 26, 0.22);
+  max-width: 26em;
+}
+
+.rit__step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-4);
+  align-items: baseline;
+}
+
+.rit__step-n { font-weight: 600; opacity: 0.55; }
+.rit__step-t { text-wrap: balance; }
+
+.rit__std {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-content: start;
+  margin-top: var(--s-7);
+}
 
 .rit__std li {
   padding: 0.7em 1em;
   border-radius: var(--radius-chip);
   background: rgba(35, 31, 26, 0.12);
 }
+
+/* ------------------------------------------------------- ritual buy card -- */
+
+.rit__cta {
+  display: grid;
+  align-self: start;
+  gap: var(--s-4);
+  padding: var(--s-6);
+  border-radius: var(--radius-card);
+  background: var(--cream);
+}
+
+.rit__cta-pack { margin-top: calc(var(--s-2) * -1); }
+
+.rit__cta-price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.rit__cta-unit { font-weight: 500; }
+
+.rit__cta-days {
+  display: grid;
+  gap: var(--s-3);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--hairline);
+}
+
+/* The same bar the pack ladder uses, so the two readings of the 30 day
+   number look like one idea rather than two charts. */
+.rit__cta-bar {
+  height: 0.5em;
+  border-radius: var(--radius-pill);
+  background: rgba(35, 31, 26, 0.16);
+  overflow: hidden;
+}
+
+.rit__cta-bar span {
+  display: block;
+  height: 100%;
+  background: var(--theme-deep);
+  border-radius: inherit;
+}
+
+.rit__cta-link {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  font-weight: 600;
+}
+
+.rit__cta-fine { text-wrap: pretty; }
 
 .rit__statement {
   max-width: 44em;
@@ -333,7 +441,7 @@
 }
 
 @media (max-width: 61.9375em) {
-  .rit { grid-template-columns: 1fr; gap: var(--s-5); }
+  .rit { grid-template-columns: 1fr; gap: var(--s-6); }
 }
 
 /* --------------------------------------------------------- other shots ---- */
@@ -354,7 +462,16 @@
 
 .other:hover { transform: translateY(-6px); }
 .other .shot { border-radius: 0; }
-.other__body { padding: var(--s-4); display: grid; gap: var(--s-2); }
+
+/* Sides get a full step more than they had, and the foot more again. The
+   card ends on a chip, and a chip sitting a single step off the bottom edge
+   reads as clipped rather than as placed. The asymmetry is deliberate:
+   optical bottom padding has to beat the sides to look equal. */
+.other__body {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-5) var(--s-5) var(--s-7);
+}
 
 .other__hero {
   justify-self: start;

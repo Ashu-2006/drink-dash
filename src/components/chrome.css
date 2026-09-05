@@ -249,10 +249,13 @@
 .ft__sub { margin-top: var(--s-3); max-width: 34em; }
 .ft .t-muted { color: rgba(255, 253, 246, 0.66); }
 
+/* Three columns, held to the left rather than stretched across the shell.
+   auto-fit across a 1280 band gave four sparse columns of two links each,
+   which is what made it read as clutter. */
 .ft__cols {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11em, 1fr));
-  gap: var(--s-6);
+  grid-template-columns: repeat(3, minmax(0, 13rem));
+  gap: var(--s-7);
   margin-top: var(--s-8);
   padding-top: var(--s-6);
   border-top: 1px solid rgba(255, 253, 246, 0.2);
@@ -261,7 +264,7 @@
 .ft__col { display: grid; align-content: start; gap: var(--s-1); }
 .ft__col .t-label { margin-bottom: var(--s-2); }
 .ft__link { min-height: 2.25em; }
-.ft__pay { margin-top: var(--s-3); font-size: 0.8em; opacity: 0.7; }
+.ft__pay { font-size: 0.8em; opacity: 0.7; }
 
 @media (min-width: 48em) {
   .ft__link { min-height: var(--hit-target); }
@@ -280,10 +283,37 @@
 .ft__base {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
-  gap: var(--s-3);
+  gap: var(--s-3) var(--s-5);
   padding-top: var(--s-5);
   border-top: 1px solid rgba(255, 253, 246, 0.2);
 }
 
+/* Policies, set as one wrapping line. They are the least read text on the
+   page and used to occupy a quarter of it. */
+.ft__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.ft__fine {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s-2) var(--s-5);
+  margin-top: var(--s-4);
+}
+
 .ft__disclaim { max-width: 34em; }
+
+@media (max-width: 767px) {
+  .ft__cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-5);
+  }
+}

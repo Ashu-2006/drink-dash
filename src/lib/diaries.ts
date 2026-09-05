@@ -24,6 +24,15 @@ export const diarySlug = (title: string) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
 
+/** The heading an article page shows.
+
+    Every one of these titles is written as "Hook: the full explanation", and
+    the explanation repeats what the standfirst directly under it already
+    says. The hook alone is the heading. The whole string stays as the
+    document title, the card title and the index entry, so nothing is lost and
+    no copy is invented: this only ever returns a prefix of the real title. */
+export const headline = (d: { title: string }) => d.title.split(":")[0].trim();
+
 export type DiaryBlock =
   | { kind: "text"; body: string }
   | { kind: "list"; items: string[] };

@@ -1,16 +1,21 @@
 /* ==========================================================================
    A single Diaries article.
 
-   Measure is capped at 34rem, which lands around 70 characters at the body
-   size. The references in these posts are superscript markers with no target
-   on the live site, so they are rendered as text rather than as links that go
+   Measure is capped at 40rem, a little under 80 characters at the body size.
+   It used to be 34rem inside a space-between two-up, which put four hundred
+   pixels of nothing between the prose and the buy card. The column widened
+   and the wrap took a max-width instead, so the gutter is a gutter.
+
+   The references in these posts are superscript markers with no target on the
+   live site, so they are rendered as text rather than as links that go
    nowhere.
    ========================================================================== */
 
 import { Link, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { Band, Button, Reveal } from "../components/primitives";
-import { diaryBySlug, otherDiaries } from "../lib/diaries";
+import { DiaryList } from "../components/DiaryCard";
+import { diaryBySlug, headline, otherDiaries } from "../lib/diaries";
 import { byHandle, fromPrice, money } from "../lib/catalog";
 import { defaultPack, useCart } from "../lib/cart";
 import { img, packFor } from "../lib/media";
@@ -65,7 +70,7 @@ export default function Diary() {
             <time dateTime={article.iso}>{article.date}</time> ·{" "}
             {article.readingMinutes} min read
           </p>
-          <h1 className="t-heading-l art-hero__title">{article.title}</h1>
+          <h1 className="t-heading-l art-hero__title">{headline(article)}</h1>
           <p className="t-body art-hero__dek">{article.dek}</p>
         </header>
         {/* The subject of the article, cut out and floated on the band. A
@@ -146,23 +151,8 @@ export default function Diary() {
       {others.length > 0 && (
         <Band tone="cream">
           <p className="t-label t-muted">Read more</p>
-          <Reveal selector=".dia-card" stagger={0.08}>
-            <div className="dia-grid">
-              {others.map((d) => (
-                <article className={`dia-card theme-${d.theme}`} key={d.slug}>
-                  <Link to={`/dash-diaries/${d.slug}`} className="dia-card__media">
-                    <img className="dia-art" {...img(d.art)} loading="lazy" />
-                  </Link>
-                  <p className="t-label t-muted">
-                    <time dateTime={d.iso}>{d.date}</time>
-                  </p>
-                  <h2 className="t-heading-s">
-                    <Link to={`/dash-diaries/${d.slug}`}>{d.title}</Link>
-                  </h2>
-                  <p className="t-body-s t-muted">{d.dek}</p>
-                </article>
-              ))}
-            </div>
+          <Reveal selector=".dcard" stagger={0.08}>
+            <DiaryList items={others} columns={3} />
           </Reveal>
         </Band>
       )}

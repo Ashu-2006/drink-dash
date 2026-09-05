@@ -3,7 +3,7 @@
    All copy comes from lib/catalog.ts, which is sourced from the live site.
    ========================================================================== */
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { ReactNode, ButtonHTMLAttributes, MouseEventHandler } from "react";
 import { Link } from "react-router-dom";
 import { CaretIcon, PaymentIcon, ReturnsIcon, ShippingIcon } from "./icons";
@@ -403,7 +403,24 @@ export function TrustRow() {
 /* -------------------------------------------------------------------------- */
 
 /** Progressive disclosure. The live pages carry a lot of prose; the strongest
-    line stays visible and the rest opens on demand. */
+    line stays visible and the rest opens on demand.
+
+    Expand is the right mechanism here rather than a drawer or a route: the
+    detail belongs to exactly one row, and someone comparing "how to use"
+    against "ingredients" wants both open at once.
+
+    The panel used to toggle `hidden`, which is a jump cut. It animates now on
+    a `grid-template-rows` track running 0fr to 1fr, which is the one way to
+    tween to an intrinsic height without measuring it in JS, so a two line
+    answer and a six paragraph one both open at the same speed with no layout
+    read. The two element panel is load bearing: padding stays on the inner
+    element, because padding on a 0fr track leaves a strip of height behind
+    and the panel never closes all the way.
+
+    `inert` rather than `hidden` on the closed state. The content has to stay
+    in the box for the track to have a height to tween to, and inert is what
+    keeps it out of the tab order and off the accessibility tree while it is
+    folded away. */
 export function Disclose({
   summary,
   children,
@@ -414,20 +431,21 @@ export function Disclose({
   open?: boolean;
 }) {
   const [open, setOpen] = useState(initial);
-  const body = useRef<HTMLDivElement>(null);
+  const panelId = useId();
   return (
     <div className={`disc${open ? " disc--on" : ""}`}>
       <button
         type="button"
         className="disc__btn"
         aria-expanded={open}
+        aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
       >
         <span className="t-heading-s">{summary}</span>
         <CaretIcon className="disc__icon" />
       </button>
-      <div className="disc__body" ref={body} hidden={!open}>
-        {children}
+      <div className="disc__panel" id={panelId} inert={!open}>
+        <div className="disc__body">{children}</div>
       </div>
     </div>
   );

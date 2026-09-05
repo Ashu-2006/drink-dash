@@ -14,6 +14,14 @@
    as craft. The angles cycle through a fixed sequence keyed by index, so a
    card sits at the same angle for the life of the page.
 
+   Card grounds cycle too, and for the same reason: a four step sequence keyed
+   by :nth-child in CSS, so the deck reads polychrome without a single colour
+   being picked at random. The cycle is the page theme, a sibling hue, the
+   page theme at pale, then the other sibling hue. Every ground carries an
+   accent whose contrast against it clears AA: the three soft tints take their
+   own deep, and the pale card takes ink, because deep on pale measures 3.7
+   and fails. See ingredientrail.css for the table.
+
    Scrolling is native overflow, not a transform track. Native scroll keeps
    the trackpad, the scrollbar, keyboard paging, and screen-reader focus
    scrolling all working for free; a transform carousel has to reimplement
@@ -35,6 +43,12 @@ const TILT = [-2.4, 1.6, -1.2, 2.2, -1.8, 1.1];
 /* Pointer travel, in px, past which a drag stops counting as a click. Below
    this a shaky press on a card still activates it. */
 const DRAG_SLOP = 6;
+
+/* Anything outside a word character or a space. Degular Display has no
+   punctuation glyphs in this cut, so a dose containing one is set in the body
+   face rather than letting the browser resolve that single glyph out of a
+   fallback and mix two faces inside one number. */
+const PUNCTUATION = /[^\w\s]/;
 
 export function IngredientRail({
   entries,
@@ -205,16 +219,26 @@ export function IngredientRail({
                 <h3 className="t-heading-s ingr__name">{entry.name}</h3>
                 <p className="t-body-s ingr__detail">{entry.detail}</p>
 
-                <p className="ingr__dose t-data">
-                  {entry.dose ? (
-                    <>
-                      <span className="visually-hidden">Dose </span>
-                      {entry.dose}
-                    </>
-                  ) : (
-                    "In the blend"
-                  )}
-                </p>
+                {/* The dose is the fact the card exists to carry, so it is set
+                    in the heading face at heading size rather than as a mono
+                    footnote. Degular Display carries no punctuation in the
+                    supplied cut, so a dose like "2.2 mcg" is set in the body
+                    face at the same size instead of rendering its full stop
+                    out of a fallback font. */}
+                <div className="ingr__dose">
+                  <span className="t-label ingr__dose-label">
+                    {entry.dose ? "Dose" : "Amount"}
+                  </span>
+                  <span
+                    className={`ingr__dose-value${
+                      entry.dose && PUNCTUATION.test(entry.dose)
+                        ? " ingr__dose-value--punct"
+                        : ""
+                    }`}
+                  >
+                    {entry.dose ?? "In blend"}
+                  </span>
+                </div>
               </article>
             </li>
           );

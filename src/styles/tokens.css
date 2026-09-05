@@ -249,7 +249,7 @@
   :root {
     --band-radius: 2.5rem;
     --radius-card: 1.5rem;
-    --grid-margin: 2.5rem;   /* 40px */
+    --grid-margin: 1.5rem;   /* 24px, a real thumb margin on a phone */
   }
 }
 

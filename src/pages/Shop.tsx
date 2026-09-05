@@ -31,6 +31,7 @@ import {
   BAND_LAYOUT_MAX,
   byConcern,
   COMPARE_MAX,
+  comparisonGroups,
   comparisonRows,
   concernOf,
   fromPrice,
@@ -42,7 +43,7 @@ import type { Product } from "../lib/catalog";
 import "./shop.css";
 import { ShopFilters, NoMatches, useShopQuery } from "../components/ShopFilters";
 import { defaultPack } from "../lib/cart";
-import { bottleFor, img, packFor } from "../lib/media";
+import { bottleFor, galleryFor, img } from "../lib/media";
 import type { AddFn } from "../lib/cart";
 import { useTitle } from "../lib/useTitle";
 
@@ -63,10 +64,6 @@ export default function Shop({ onAdd }: { onAdd: AddFn }) {
       <Band tone="cream" clip="none">
         <ShopFilters query={query} results={results} set={set} />
       </Band>
-      {/* The concern rail is an anchor nav, so it only makes sense while every
-          product it points at is on the page. */}
-      {results.length === products.length && <ConcernRail />}
-
       {results.length === 0 ? (
         <Band tone="cream">
           <NoMatches onClear={clear} />
@@ -79,6 +76,10 @@ export default function Shop({ onAdd }: { onAdd: AddFn }) {
 
       <Compare />
       <Bundles onAdd={onAdd} />
+
+      {/* An anchor nav, so it only makes sense while every product it points
+          at is on the page. Fixed, so it is last in the tree. */}
+      {results.length === products.length && <ConcernRail />}
     </>
   );
 }
@@ -103,11 +104,27 @@ function ShopHero() {
 
 /* ---------------------------------------------------------------- rail ---- */
 
-/** Sticky concern selector. Facets come from the taxonomy, so a new concern
-    appears here automatically. Its own overflow container, so the page itself
-    never scrolls sideways. */
+/** The concern selector.
+
+    It used to be a pill stuck under the header, in view from the moment the
+    page loaded, competing with the filter bar directly above it and with the
+    hero it covered. It now sits at the bottom centre and only exists while it
+    is useful: it arrives once the reader is halfway through the first shot,
+    which is the first moment jumping to another shot is a thing anyone would
+    want, and it leaves once the comparison table has been scrolled past,
+    after which there is nothing left on the page for it to point at.
+
+    Both edges are read off the real sections rather than off a scroll
+    distance, so they stay correct when a band changes height. Measured in a
+    rAF on scroll and on resize: getBoundingClientRect is cheap, and an
+    IntersectionObserver cannot express "the middle of this element" without a
+    sentinel element that exists only to be observed.
+
+    Facets come from the taxonomy, so a new concern appears here on its own.
+    Its own overflow container, so the page never scrolls sideways. */
 function ConcernRail() {
   const [active, setActive] = useState<string>("all");
+  const [shown, setShown] = useState(false);
   const list = activeConcerns();
 
   useEffect(() => {
@@ -133,6 +150,40 @@ function ConcernRail() {
     return () => io.disconnect();
   }, [list]);
 
+  /* Visibility. first is the opening shot band, last is the comparison. If
+     either is missing the rail stays hidden rather than floating over a page
+     it cannot navigate. */
+  useEffect(() => {
+    const first = document.getElementById(`sku-${products[0]?.handle}`);
+    const compare = document.getElementById("compare");
+    if (!first || !compare) return;
+
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const a = first.getBoundingClientRect();
+      const b = compare.getBoundingClientRect();
+      /* In once the midpoint of the first band has risen past the middle of
+         the viewport. Out once the comparison has left the top of it. */
+      const past = a.top + a.height / 2 <= window.innerHeight / 2;
+      const done = b.bottom <= 0;
+      setShown(past && !done);
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+
+    measure();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   const go = (concernId: string | "all") => {
     const target =
       concernId === "all"
@@ -144,30 +195,38 @@ function ConcernRail() {
   };
 
   return (
-    <div className="rail">
-      <div className="shell">
-        <div className="rail__scroll scroller">
-          {list.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`chip${active === c.id ? " chip--active" : ""}`}
-              aria-pressed={active === c.id}
-              onClick={() => go(c.id)}
-            >
-              {c.label}
-            </button>
-          ))}
-          <button type="button" className="chip chip--outline" onClick={() => go("all")}>
-            Compare all
+    <div className={`rail${shown ? " rail--in" : ""}`} aria-hidden={!shown}>
+      <div className="rail__scroll scroller">
+        {list.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            className={`chip${active === c.id ? " chip--active" : ""}`}
+            aria-pressed={active === c.id}
+            tabIndex={shown ? 0 : -1}
+            onClick={() => go(c.id)}
+          >
+            {c.label}
           </button>
-        </div>
+        ))}
+        <button
+          type="button"
+          className="chip chip--outline"
+          tabIndex={shown ? 0 : -1}
+          onClick={() => go("all")}
+        >
+          Compare all
+        </button>
       </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------ sku band ---- */
+
+/** Frames in the band gallery. Past four the strip scrolls, and a picker that
+    hides its own options is not a picker. */
+const SKU_SHOTS = 4;
 
 /** One product, full bleed, in its own colour, with everything needed to buy.
     Used while the catalogue is small. */
@@ -176,18 +235,31 @@ function SkuBand({ product, onAdd }: { product: Product; onAdd: AddFn }) {
   const pack = product.packs.find((p) => p.sku === sku) ?? product.packs[0];
   const ref = useRef<HTMLDivElement>(null);
 
+  /* The thumbnails under the shot used to be four plain images with no
+     handler on them. They looked exactly like a gallery picker, because that
+     is what a strip of small images under a large one means, and clicking one
+     did nothing at all. They are buttons now and they swap the shot.
+
+     Four, not nine: galleryFor returns everything there is, and a strip long
+     enough to scroll hides its own last frame. The cut-out stays first, so
+     the band opens on the same image it always did. */
+  const shots = galleryFor(product.handle, product.images).slice(0, SKU_SHOTS);
+  const [shotIndex, setShotIndex] = useState(0);
+  const shot = shots[shotIndex] ?? shots[0];
+
   return (
     <div ref={ref} id={`sku-${product.handle}`} className={`theme-${product.theme}`}>
       <Band tone="base" clip="bottom" overlap>
         <div className="sku">
           <div className="sku__media">
-            {/* The band ground is the product's own colour, so the cut-out
-                sits straight on it with no plate. */}
-            {bottleFor(product.handle) ? (
+            {/* A cut-out sits straight on the band, which is already the
+                product's own colour. A photograph is a rectangle and gets a
+                frame, or it reads as a print dropped on the page. */}
+            {shot ? (
               <img
-                className="sku__bottle"
-                {...img(bottleFor(product.handle)!)}
-                alt={`${product.name}, ${product.descriptor}`}
+                className={`sku__shot${shot.contain ? " sku__shot--cutout" : ""}`}
+                src={shot.src}
+                alt={shot.alt || `${product.name}, ${product.descriptor}`}
                 loading="lazy"
                 decoding="async"
               />
@@ -198,14 +270,27 @@ function SkuBand({ product, onAdd }: { product: Product; onAdd: AddFn }) {
                 ratio="1 / 1"
               />
             )}
-            <div className="sku__thumbs scroller">
-              {packFor(product.handle) && (
-                <img {...img(packFor(product.handle)!)} loading="lazy" />
-              )}
-              {product.images.slice(1, 3).map((basename) => (
-                <img key={basename} src={`/media/${basename}.jpg`} alt="" loading="lazy" />
-              ))}
-            </div>
+
+            {shots.length > 1 && (
+              <div
+                className="sku__thumbs scroller"
+                role="group"
+                aria-label={`${product.name}, more images`}
+              >
+                {shots.map((s, i) => (
+                  <button
+                    key={s.src}
+                    type="button"
+                    className={`sku__thumb${i === shotIndex ? " is-on" : ""}`}
+                    aria-pressed={i === shotIndex}
+                    aria-label={s.alt || `View ${i + 1} of ${shots.length}`}
+                    onClick={() => setShotIndex(i)}
+                  >
+                    <img src={s.src} alt="" loading="lazy" decoding="async" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="sku__buy">
@@ -369,25 +454,48 @@ function Compare() {
               {shown.map((p) => (
                 <th key={p.handle} scope="col" className={`theme-${p.theme} cmp__head`}>
                   <span className="cmp__swatch" aria-hidden />
-                  <span className="t-heading-s">{p.shortName}</span>
+                  <span className="t-heading-s cmp__name">{p.shortName}</span>
+                  {/* The column's own price, so the header identifies the
+                      shot rather than only naming it. */}
+                  <span className="t-data t-muted cmp__from">
+                    from {money(fromPrice(p))}
+                  </span>
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
-            {comparisonRows.map((row) => (
-              <tr key={row.label}>
-                <th scope="row" className="t-body-s cmp__stub">
-                  {row.label}
-                </th>
-                {shown.map((p) => (
-                  <td key={p.handle} className="t-body-s">
-                    {row.get(p)}
-                  </td>
+
+          {/* One tbody per group. Valid HTML, and it lets each group carry its
+              own heading row and its own closing rule without a class on
+              every cell counting rows. */}
+          {comparisonGroups.map((group) => {
+            const rows = comparisonRows.filter((r) => r.group === group.id);
+            if (!rows.length) return null;
+            return (
+              <tbody key={group.id} className="cmp__group">
+                <tr className="cmp__grouphead">
+                  <th scope="colgroup" colSpan={shown.length + 1} className="t-label t-muted">
+                    {group.label}
+                  </th>
+                </tr>
+                {rows.map((row) => (
+                  <tr key={row.label} className={row.lead ? "cmp__row cmp__row--lead" : "cmp__row"}>
+                    <th scope="row" className="t-body-s cmp__stub">
+                      {row.label}
+                    </th>
+                    {shown.map((p) => (
+                      <td key={p.handle} className="cmp__val">
+                        {row.get(p)}
+                      </td>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
-            <tr>
+              </tbody>
+            );
+          })}
+
+          <tbody className="cmp__group">
+            <tr className="cmp__row cmp__row--buy">
               <th scope="row" className="t-body-s cmp__stub">
                 Buy
               </th>

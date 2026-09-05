@@ -1,14 +1,17 @@
 /* ==========================================================================
-   How it works: the dealt deck.
+   How it works: the fanned deck.
+
+   Mobile first. One column, then a two up, then the fan. The fan waits until
+   75em because that is where a card is wide enough to hold a paragraph beside
+   a 22% overlap; below it the cards sit square, untilted and side by side.
    ========================================================================== */
 
 .hiw {
   position: relative;
   padding-block: var(--section-pad);
   background: var(--cream);
-  /* The fanned state pushes cards left of the shell and the rotation lifts
-     their corners past it. Clipping here rather than on .band keeps the deal
-     from causing a horizontal scrollbar mid-animation. */
+  /* The tilt lifts the outer corners past the shell. Clipping here rather
+     than on the band keeps that from causing a horizontal scrollbar. */
   overflow: hidden;
 }
 
@@ -27,24 +30,19 @@
 
 .hiw__deck {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: var(--s-4);
-  align-items: stretch;
-  /* Cards are dealt from a pile that starts left of the row. The row itself
-     never moves. */
-  padding-block: var(--s-2);
+  grid-template-columns: 1fr;
+  gap: var(--s-5);
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
 .hiw__card {
   position: relative;
   overflow: hidden;
+  min-width: 0;
   border-radius: var(--radius-card);
-  min-height: 30rem;
   color: var(--ink);
-  /* will-change is set only on the property that actually animates. On the
-     whole card it would promote four large layers for the life of the page. */
-  will-change: transform;
 }
 
 .hiw__card--glow {
@@ -64,33 +62,34 @@
   color: var(--cream);
 }
 
+/* Above the mark texture. */
 .hiw__inner {
   position: relative;
   z-index: 1;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
   gap: var(--s-2);
-  align-content: start;
   height: 100%;
-  padding: var(--s-5);
+  padding: clamp(var(--s-4), 1.4vw, var(--s-5));
 }
 
 .hiw__step {
-  margin: 0;
   opacity: 0.7;
 }
 
 .hiw__figure {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1;
-  margin-block: var(--s-2);
+  overflow: hidden;
+  min-height: 0;
+  margin-block: var(--s-3);
+  border-radius: var(--radius-media);
+  background: rgba(35, 31, 26, 0.06);
 }
 
-.hiw__bottle {
-  width: 78%;
+.hiw__photo {
+  width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 1.25rem 1.5rem rgba(35, 31, 26, 0.22));
+  min-height: 11rem;
+  object-fit: cover;
 }
 
 .hiw__verb {
@@ -98,6 +97,11 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: var(--tr-heading);
+  /* Clamped rather than fixed: in the fan a card is under a third of the row,
+     and the verb has to fit inside it without clipping a W. */
+  font-size: clamp(1.5rem, 1.5vw + 0.65rem, 2.25rem);
+  line-height: 1;
+  overflow-wrap: break-word;
 }
 
 .hiw__line {
@@ -106,43 +110,95 @@
 
 .hiw__detail {
   opacity: 0.78;
-  margin-top: auto;
-  padding-top: var(--s-4);
 }
 
-/* ---------------------------------------------------------------- narrow */
+/* -------------------------------------------------------------- the two up */
 
-@media (max-width: 991px) {
+@media (min-width: 48em) {
   .hiw__deck {
-    grid-auto-flow: row;
-    grid-auto-columns: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .hiw__card {
-    min-height: 26rem;
-  }
 }
 
-@media (max-width: 600px) {
+/* ---------------------------------------------------------------- the fan */
+
+@media (min-width: 75em) {
   .hiw__deck {
-    grid-template-columns: 1fr;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    /* Cards measure themselves against the deck, so the overlap and the
+       padding that clears it are the same number in two places instead of two
+       numbers that drift. */
+    container-type: inline-size;
+    --hiw-w: 30cqi;
+    --hiw-lap: 6.667cqi;
+    /* Room for the tilt to lift the top corners. */
+    padding-block: var(--s-3);
   }
+
   .hiw__card {
+    flex: 0 0 var(--hiw-w);
+    /* Fixed, so the four cards line up along their tops and bottoms and the
+       picture absorbs the difference between a short step and a long one. */
+    height: 32rem;
+    margin-top: var(--hiw-drop, 0);
+    /* The fan order plus whatever the comb adds. The pointed at card gets 20
+       on top of its place in the deck, so it clears every neighbour without
+       any of them changing order among themselves. */
+    z-index: calc(var(--hiw-z, 1) + var(--hiw-zt, 0));
+    /* Translate first, then rotate, then scale, so the scale cannot amplify
+       the shift and the rotation happens about the card's own centre. The
+       comb writes --hiw-x, --hiw-y, --hiw-scale and --hiw-rot-now; at rest
+       every one of them falls through to the fan's own value. */
+    transform:
+      translate3d(var(--hiw-x, 0px), var(--hiw-y, 0px), 0)
+      rotate(var(--hiw-rot-now, var(--hiw-rot, 0deg)))
+      scale(var(--hiw-scale, 1));
+    /* One declaration, two curves. The comb sets transition-timing-function
+       inline before it writes the variables: --ease-smooth on the way in and
+       --ease-bounce on the way back. The duration is the only thing fixed
+       here. */
+    transition:
+      transform var(--dur-4) var(--ease-smooth),
+      box-shadow var(--dur-3) var(--ease-smooth);
+    will-change: transform;
+  }
+
+  .hiw__card + .hiw__card {
+    margin-inline-start: calc(var(--hiw-lap) * -1);
+  }
+
+  /* Only the cards with something on top of them are held clear of it. The
+     last one has the row to itself. */
+  .hiw__card:not(:last-child) .hiw__inner {
+    padding-inline-end: calc(clamp(var(--s-4), 1.4vw, var(--s-5)) + var(--hiw-lap));
+  }
+
+  /* The pointed at card gets a ring rather than a shadow. Depth in this
+     system comes from bands overlapping, never from a blur, and the only
+     box-shadow allowed is the focus ring and its inset cousins. The lift, the
+     straightening and the neighbours moving away already say "in front". */
+  .hiw__card:hover {
+    box-shadow: inset 0 0 0 2px currentColor;
+  }
+
+  /* In the fan a long paragraph squeezes the flexible row the figure sits
+     in. The figure keeps a floor and the photo gives up its own, so the
+     picture becomes a band rather than vanishing. */
+  .hiw__figure {
+    min-height: 6rem;
+  }
+
+  .hiw__photo {
     min-height: 0;
   }
-  .hiw__figure {
-    aspect-ratio: 3 / 2;
-  }
 }
 
-/* GSAP writes transforms inline, and an inline style beats any selector. The
-   component already skips the tween when reduced motion is set at mount, so
-   this only matters when the OS setting is changed with the page open, and
-   there is no way to out-specify an inline style without the flag. It is the
-   one !important in the app. */
 @media (prefers-reduced-motion: reduce) {
   .hiw__card {
-    will-change: auto;
-    transform: none !important;
+    transition: none;
   }
+  /* The comb never runs under reduced motion (the component checks), so
+     the ring is the whole hover state. */
 }

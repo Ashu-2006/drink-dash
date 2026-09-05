@@ -11,34 +11,44 @@
    cut through the coloured bands and read as a seam, and it covered the CTA it
    scrolled over. A centred pill takes less vertical space and reads as a
    control. Its own overflow container, so the page never scrolls sideways. */
+/* The rail floats at the bottom centre and is only mounted visually between
+   the middle of the first shot and the end of the comparison. Out of the way
+   of the filter bar it used to sit under, and in the corner of the eye rather
+   than across the top of the page. */
 .rail {
-  position: sticky;
-  top: 5.25em;
+  position: fixed;
+  left: 50%;
+  bottom: var(--s-5);
   z-index: 40;
-  pointer-events: none;
-  /* Zero height so the pill floats over the band rather than reserving a
-     stripe. align-items must not stretch, or a zero height container
-     flattens its own children. */
-  height: 0;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
+  max-width: calc(100% - var(--grid-margin) * 2);
+  /* Shut: not clickable, not tabbable, not read. tabIndex on the buttons and
+     aria-hidden on the wrapper carry the other two. */
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 1rem);
+  transition:
+    opacity var(--dur-4) var(--ease-smooth),
+    transform var(--dur-4) var(--ease-soft-overshoot);
 }
 
-.rail .shell {
-  display: flex;
-  justify-content: center;
-  padding-inline: var(--grid-margin);
+.rail--in {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .rail__scroll {
-  pointer-events: auto;
   display: flex;
   gap: var(--s-1);
   max-width: 100%;
   padding: var(--s-1);
   border-radius: var(--radius-pill);
   background: var(--ink);
+  /* It sits over the page now rather than in it, so it needs to read as a
+     layer above the band behind it. */
+  box-shadow: 0 1rem 2.5rem rgba(35, 31, 26, 0.28);
 }
 
 .rail__scroll > * { flex-shrink: 0; }
@@ -59,8 +69,12 @@
   box-shadow: inset 0 0 0 1.5px rgba(255, 253, 246, 0.3);
 }
 
-/* The first band after the rail needs room for the floating control. */
-.rail + div .band { padding-top: calc(var(--section-pad) + 3em); }
+@media (prefers-reduced-motion: reduce) {
+  .rail {
+    transition: none;
+    transform: translate(-50%, 0);
+  }
+}
 
 /* ------------------------------------------------------------- sku band ---- */
 
@@ -74,18 +88,53 @@
 .sku__media { position: sticky; top: 9em; min-width: 0; }
 .sku__media .shot { border-radius: var(--radius-card); }
 
+.sku__shot {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  background: var(--theme-soft);
+}
+
+/* The cut-outs carry their own transparency, so they get no plate and no
+   crop: just the shadow that lifts them off the band. */
+.sku__shot--cutout {
+  object-fit: contain;
+  border-radius: 0;
+  background: none;
+  filter: drop-shadow(0 1.5rem 2rem rgba(35, 31, 26, 0.2));
+}
+
 .sku__thumbs {
   display: flex;
   gap: var(--s-2);
   margin-top: var(--s-3);
 }
 
-.sku__thumbs img {
+.sku__thumb {
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: var(--radius-media);
+  /* Inset, so the ring does not shift the strip when it appears. */
+  box-shadow: inset 0 0 0 var(--hairline-width) rgba(35, 31, 26, 0.18);
+  transition: box-shadow var(--dur-3) var(--ease-smooth);
+}
+
+.sku__thumb.is-on {
+  box-shadow: inset 0 0 0 0.16em var(--ink);
+}
+
+.sku__thumb img {
   width: 5.5em;
   height: 5.5em;
-  flex-shrink: 0;
   object-fit: cover;
   border-radius: var(--radius-media);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sku__thumb {
+    transition: none;
+  }
 }
 
 .sku__buy { min-width: 0; }
@@ -181,17 +230,33 @@
 
 /* ------------------------------------------------------------- compare ---- */
 
+/* The table had one weight for everything: seven attribute rows, all
+   t-body-s, all separated by the same hairline, with the row labels set
+   heavier than the values they label. The eye had nowhere to land.
+
+   Three moves, in order of how much they do:
+     the labels go quiet and the values get the body size, so the content
+     outweighs its own axis;
+     the rows group under three headings, so the table answers three
+     questions instead of listing seven facts;
+     the named dose, which is the strongest thing the brand owns, is set
+     heavier than its neighbours and is the only row that is.
+   Rules now close groups instead of separating every row, which takes six
+   lines out of the table without taking any information out of it. */
+
 .cmp { margin-top: var(--s-7); min-width: 0; }
 .cmp__picker { margin-top: var(--s-6); margin-bottom: var(--s-4); }
 
-.cmp__table { min-width: 34em; }
+.cmp__table {
+  min-width: 34em;
+  border-collapse: collapse;
+}
 
 .cmp__table th,
 .cmp__table td {
   text-align: left;
   vertical-align: top;
   padding: var(--s-3) var(--s-4);
-  border-bottom: 1px solid var(--hairline);
 }
 
 /* Frozen first column so the row label stays readable while the values scroll. */
@@ -199,19 +264,84 @@
   position: sticky;
   left: 0;
   background: var(--cream);
-  font-weight: 600;
   min-width: 11em;
 }
 
-.cmp__head { min-width: 9em; }
+/* Quiet. It names the axis; the value is the answer. */
+.cmp__row .cmp__stub {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ---- head ---- */
+
+.cmp__head {
+  min-width: 9em;
+  padding-bottom: var(--s-4);
+  border-bottom: 0.14em solid var(--ink);
+}
 
 .cmp__swatch {
   display: block;
   width: 100%;
   height: 0.4em;
-  margin-bottom: var(--s-2);
+  margin-bottom: var(--s-3);
   border-radius: var(--radius-pill);
   background: var(--theme-base);
+}
+
+.cmp__name { display: block; }
+
+.cmp__from {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: 0.82em;
+}
+
+thead .cmp__stub {
+  align-self: end;
+  border-bottom: 0.14em solid var(--ink);
+}
+
+/* ---- groups ---- */
+
+.cmp__grouphead th {
+  padding-top: var(--s-6);
+  padding-bottom: var(--s-1);
+  font-weight: 500;
+}
+
+/* The first group opens straight under the head rule, so it needs no air of
+   its own on top of it. */
+.cmp__group:first-of-type .cmp__grouphead th {
+  padding-top: var(--s-4);
+}
+
+/* One rule per group rather than one per row. */
+.cmp__group:not(:last-child) .cmp__row:last-child th,
+.cmp__group:not(:last-child) .cmp__row:last-child td {
+  border-bottom: var(--hairline-width) solid var(--hairline);
+  padding-bottom: var(--s-4);
+}
+
+.cmp__val {
+  font-size: var(--size-font);
+}
+
+/* The one row that is allowed to shout. */
+.cmp__row--lead .cmp__val {
+  font-weight: 600;
+  font-size: 1.06em;
+}
+
+.cmp__row--lead .cmp__stub {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cmp__row--buy th,
+.cmp__row--buy td {
+  padding-top: var(--s-5);
 }
 
 .cmp__link {
@@ -264,13 +394,6 @@
    directly with no plate behind it. contain, never cover: this is an object,
    and cropping a bottle to fill a square cuts the cap off.
    -------------------------------------------------------------------------- */
-
-.sku__bottle {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  filter: drop-shadow(0 1.5rem 2rem rgba(35, 31, 26, 0.2));
-}
 
 .gcard__bottle {
   width: 100%;

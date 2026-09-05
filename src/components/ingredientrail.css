@@ -4,6 +4,66 @@
 
 .ingr {
   margin-top: var(--s-6);
+
+  /* The two sibling hues for this rail. The page theme leads the cycle and
+     these punctuate it, so the deck reads as a set of different cards without
+     any card leaving the brand palette. Default is the glow page. */
+  --alt-1-soft: var(--burn-soft);
+  --alt-1-deep: var(--burn-deep);
+  --alt-2-soft: var(--volume-soft);
+  --alt-2-deep: var(--volume-deep);
+}
+
+.ingr.theme-burn {
+  --alt-1-soft: var(--volume-soft);
+  --alt-1-deep: var(--volume-deep);
+  --alt-2-soft: var(--glow-soft);
+  --alt-2-deep: var(--glow-deep);
+}
+
+.ingr.theme-volume {
+  --alt-1-soft: var(--glow-soft);
+  --alt-1-deep: var(--glow-deep);
+  --alt-2-soft: var(--burn-soft);
+  --alt-2-deep: var(--burn-deep);
+}
+
+/* Ground cycle, four steps, keyed by position so it never moves between
+   renders. Measured against the accent each ground carries:
+
+     theme-soft  + theme-deep   4.99 : 1
+     alt-1-soft  + alt-1-deep   4.84 : 1
+     theme-pale  + ink         10.41 : 1
+     alt-2-soft  + alt-2-deep   4.63 : 1
+
+   The pale card takes ink rather than a deep on purpose. Every deep measures
+   3.4 to 3.9 on a pale tint, which fails AA for the label and dose sizes used
+   here, so the one saturated card in the deck swaps its accent instead of
+   dropping the tint. */
+.ingr__card:nth-child(4n + 1) {
+  --card-ground: var(--theme-soft);
+  --card-accent: var(--theme-deep);
+  --card-detail: var(--muted);
+}
+
+.ingr__card:nth-child(4n + 2) {
+  --card-ground: var(--alt-1-soft);
+  --card-accent: var(--alt-1-deep);
+  --card-detail: var(--muted);
+}
+
+/* The saturated card. --muted measures 3.80 on a pale tint and fails, so the
+   supporting copy on this one card is ink rather than muted. */
+.ingr__card:nth-child(4n + 3) {
+  --card-ground: var(--theme-pale);
+  --card-accent: var(--ink);
+  --card-detail: var(--ink);
+}
+
+.ingr__card:nth-child(4n + 4) {
+  --card-ground: var(--alt-2-soft);
+  --card-accent: var(--alt-2-deep);
+  --card-detail: var(--muted);
 }
 
 .ingr__head {
@@ -80,20 +140,24 @@
   flex: 0 0 20rem;
   scroll-snap-align: center;
   border-radius: var(--radius-card);
-  background: var(--theme-soft);
+  background: var(--card-ground);
   transform: rotate(var(--tilt));
   transition: transform var(--dur-4) var(--ease-soft-bounce),
-    background var(--dur-3) var(--ease-smooth),
     box-shadow var(--dur-3) var(--ease-smooth);
 }
 
 /* Pointing at a card straightens it and lifts it out of the fan. The rest of
    the deck stays tilted, so the one you are reading is visibly the one you
-   are reading. */
+   are reading.
+
+   Hover used to repaint the ground from soft to pale. It cannot now: the card
+   carries its own accent, and every accent that clears AA on a soft tint
+   fails on the pale one. The ring in the card's accent says the same thing
+   and leaves the contrast where it was. */
 .ingr__card:hover,
 .ingr__card:focus-within {
   transform: rotate(0deg) translateY(-0.5rem) scale(1.02);
-  background: var(--theme-pale);
+  box-shadow: inset 0 0 0 2px var(--card-accent);
   z-index: 2;
   position: relative;
 }
@@ -107,7 +171,7 @@
 }
 
 .ingr__step {
-  color: var(--theme-deep);
+  color: var(--card-accent);
   margin: 0;
 }
 
@@ -134,13 +198,17 @@
 }
 
 .ingr__figure-dose {
+  font-family: var(--font-heading);
+  font-weight: 700;
   font-size: var(--type-heading-m);
-  color: var(--theme-deep);
-  opacity: 0.5;
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading-s);
+  color: var(--card-accent);
+  opacity: 0.45;
 }
 
 .ingr__role {
-  color: var(--theme-deep);
+  color: var(--card-accent);
   margin: 0;
 }
 
@@ -152,14 +220,42 @@
 }
 
 .ingr__detail {
-  color: var(--muted);
+  color: var(--card-detail, var(--muted));
 }
 
+/* The dose was a mono footnote the same size as the body copy, which put the
+   one number on the card at the bottom of its own visual hierarchy. It is set
+   in the heading face at heading-m now, with the caption above it doing the
+   labelling the mono voice used to do. */
 .ingr__dose {
+  display: grid;
+  gap: var(--s-1);
   margin-top: auto;
   padding-top: var(--s-4);
   align-self: end;
   border-top: var(--hairline-width) solid var(--hairline);
+}
+
+.ingr__dose-label {
+  color: var(--card-accent);
+}
+
+.ingr__dose-value {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--type-heading-m);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--tr-heading-s);
+  color: var(--ink);
+}
+
+/* "2.2 mcg" and anything else carrying punctuation. Degular Display has no
+   full stop in this cut, so the body face sets the whole string rather than
+   the browser resolving one glyph out of a fallback mid-number. */
+.ingr__dose-value--punct {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: var(--tr-heading);
 }
 
 /* ---------------------------------------------------------------- narrow */

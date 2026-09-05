@@ -33,7 +33,9 @@ import {
   BRAND,
   byHandle,
   concernOf,
+  MECHANISM_BEATS,
   money,
+  perServing,
   products,
   RITUAL_NOTE,
   savingPercent,
@@ -43,7 +45,9 @@ import type { Product as P } from "../lib/catalog";
 import "./pdp.css";
 import type { AddFn } from "../lib/cart";
 import { IngredientRail } from "../components/IngredientRail";
-import { galleryFor } from "../lib/media";
+import { StepDeck } from "../components/HowItWorks";
+import type { DeckStep } from "../components/HowItWorks";
+import { artForIngredient, galleryFor, stillFor } from "../lib/media";
 import { useTitle } from "../lib/useTitle";
 
 export default function Product({ onAdd }: { onAdd: AddFn }) {
@@ -101,8 +105,12 @@ export default function Product({ onAdd }: { onAdd: AddFn }) {
       <HowItWorks product={product} />
       <Ingredients product={product} />
       <Research product={product} />
-      <Reviews product={product} />
-      <Ritual product={product} />
+      {/* Keyed on the handle so navigating between products remounts the
+          list. A six review product read to the end would otherwise hand the
+          next product an already expanded one. A key does that without an
+          effect that sets state during render. */}
+      <Reviews key={product.handle} product={product} />
+      <Ritual product={product} pack={pack} onAdd={addSelected} />
       <OtherShots current={product} />
       <StickyBuyBar product={product} pack={pack} visible={barOn} onAdd={addSelected} />
     </div>
@@ -171,7 +179,7 @@ function Hero({
           </div>
         </div>
 
-        <div className="pdp__buy" ref={boxRef}>
+        <div className="pdp__buy" id="packs" ref={boxRef}>
           <p className="t-label">{product.descriptor}</p>
           <h1 className="t-display-xl pdp__name">{product.name}</h1>
           <p className="t-data pdp__flavour">{product.flavour}</p>
@@ -368,21 +376,50 @@ function Ladder({ product }: { product: P }) {
 
 /* --------------------------------------------------------- how it works ---- */
 
+/** The mechanism, carded.
+
+    This was a lead line and three paragraphs in two columns, which is a
+    layout for an essay and not for a step sequence. It runs on the same
+    fanned deck the home page uses for the ritual, so the two "how it works"
+    moments on the site are one component and not two that drift.
+
+    Each card is one of the four paragraphs the brand publishes, verbatim,
+    under a structural label saying what that paragraph is about. Pictures:
+    the lab tray for the pathways, the product's own hero ingredient for what
+    it is built to do, people for the body, the bottle for the result. Tones
+    lead with the page theme, then the two siblings, then ink, the same cycle
+    the ingredient rail runs. */
 function HowItWorks({ product }: { product: P }) {
+  const siblings = (["glow", "burn", "volume"] as const).filter((t) => t !== product.theme);
+  const tones = [product.theme, siblings[0], siblings[1], "ink"] as const;
+
+  const heroArt =
+    product.formula.map((f) => artForIngredient(f.name)).find((k) => k !== null) ?? null;
+  const art = [
+    "life-bench" as const,
+    heroArt,
+    "people-sofa" as const,
+    stillFor(product.handle),
+  ];
+
+  const steps: DeckStep[] = product.howItWorks.map((detail, i) => ({
+    id: `${product.handle}-${i}`,
+    title: MECHANISM_BEATS[i] ?? `Beat ${i + 1}`,
+    detail,
+    tone: tones[i] ?? "ink",
+    art: art[i] ?? null,
+  }));
+
   return (
-    <Band tone="cream">
-      <div className="hiw">
-        <div>
-          <p className="t-label t-muted">How it works</p>
-          <p className="t-heading-l hiw__lead">{product.howItWorks[0].replace(/\.$/, "")}</p>
-        </div>
-        <div className="hiw__body">
-          {product.howItWorks.slice(1).map((t) => (
-            <p key={t.slice(0, 20)} className="t-body">
-              {t}
-            </p>
-          ))}
-        </div>
+    <Band tone="cream" id="how">
+      <SectionHead
+        eyebrow="How it works"
+        title={`How ${product.shortName} works`}
+        display
+        lede="One formula, four beats. Point at a card to bring it forward."
+      />
+      <div className="pdp-deck">
+        <StepDeck steps={steps} label={`How ${product.shortName} works`} />
       </div>
     </Band>
   );
@@ -391,10 +428,21 @@ function HowItWorks({ product }: { product: P }) {
 /* --------------------------------------------------------- ingredients ---- */
 
 /** The long prose from the live page lives here, behind disclosure. The page
-    stays short and nothing is lost. */
+    stays short and nothing is lost.
+
+    The band ran headless, so the four rows arrived with no statement of what
+    they were: a stack of buttons under a formula section, with nothing saying
+    they were the label read out in full. It gets the same head every other
+    band on this page gets. */
 function Ingredients({ product }: { product: P }) {
   return (
-    <Band tone="cream">
+    <Band tone="cream" id="detail">
+      <SectionHead
+        eyebrow="The label in full"
+        title="Everything else worth knowing"
+        lede={`What ${product.shortName} is, what is in a 60 ml serving, how to take it, and how it reaches you. Open any of them.`}
+      />
+
       <div className="discs">
         <Disclose summary={`What ${product.name.replace("DASH OF ", "Dash of ")} is`} open>
           {product.whatItIs.map((t) => (
@@ -476,8 +524,16 @@ function Research({ product }: { product: P }) {
 
 /* ------------------------------------------------------------- reviews ---- */
 
+/* How many reviews are shown before the fold. Four fills the grid at every
+   breakpoint the page has: one row of four wide, two of two at tablet, four
+   stacked on a phone. A fifth card would leave a hole in three of those. */
+const REVIEWS_SHOWN = 4;
+
 function Reviews({ product }: { product: P }) {
   const has = product.reviews.length > 0;
+  const [all, setAll] = useState(false);
+  const overflow = product.reviews.length - REVIEWS_SHOWN;
+  const shown = all ? product.reviews : product.reviews.slice(0, REVIEWS_SHOWN);
 
   return (
     <Band tone="cream" id="reviews">
@@ -504,17 +560,38 @@ function Reviews({ product }: { product: P }) {
       </div>
 
       {has && (
-        <Reveal selector=".rvw" stagger={0.06}>
-          <div className="rvws">
-            {product.reviews.map((r) => (
-              <blockquote key={r.name} className="rvw">
-                <Stars n={r.stars} />
-                <p className="t-body rvw__text">{r.text}</p>
-                <cite className="t-label rvw__name">{r.name}</cite>
-              </blockquote>
-            ))}
-          </div>
-        </Reveal>
+        <>
+          <Reveal selector=".rvw" stagger={0.06}>
+            <div className="rvws">
+              {shown.map((r, i) => (
+                <blockquote
+                  key={r.name}
+                  className={`rvw${all && i >= REVIEWS_SHOWN ? " rvw--late" : ""}`}
+                  /* Only the cards that arrive on the click are staggered.
+                     The first four are revealed by the scroll trigger above
+                     and must not animate twice. */
+                  style={
+                    all && i >= REVIEWS_SHOWN
+                      ? ({ "--n": i - REVIEWS_SHOWN } as React.CSSProperties)
+                      : undefined
+                  }
+                >
+                  <Stars n={r.stars} />
+                  <p className="t-body rvw__text">{r.text}</p>
+                  <cite className="t-label rvw__name">{r.name}</cite>
+                </blockquote>
+              ))}
+            </div>
+          </Reveal>
+
+          {overflow > 0 && (
+            <div className="rvws__more">
+              <Button variant="secondary" onClick={() => setAll((v) => !v)}>
+                {all ? "Show fewer reviews" : `Show ${overflow} more reviews`}
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </Band>
   );
@@ -522,27 +599,114 @@ function Reviews({ product }: { product: P }) {
 
 /* -------------------------------------------------------------- ritual ---- */
 
-function Ritual({ product }: { product: P }) {
+/** The last full band before the line-up, and the page's second buy point.
+
+    It used to be a title, three lines and a wall of badges: the loudest band
+    on the page carrying no action at all, sitting directly after the reviews,
+    which is exactly where someone has finished being convinced. It carries
+    the offer now.
+
+    The card repeats the pack already selected in the hero rather than pushing
+    a different one. Two buy points offering two different things is a
+    decision to make twice, and the second one is made with less attention
+    than the first.
+
+    The one nudge it does make is arithmetic the brand states itself: the
+    30 day ritual is the brand's own recommendation, so a pack that does not
+    cover 30 days is shown against it. No badge, no urgency, just the two
+    numbers next to each other and a link back to the packs. */
+function Ritual({
+  product,
+  pack,
+  onAdd,
+}: {
+  product: P;
+  pack: P["packs"][number];
+  onAdd: () => void;
+}) {
+  const tier = tierFor(pack.servings);
+  const covers = pack.servings >= RITUAL_NOTE.days;
+
   return (
-    <Band tone="base" clip="bottom" overlap>
+    <Band tone="base" clip="bottom" overlap id="ritual">
       <div className="rit">
-        <div>
+        <div className="rit__copy">
           <p className="t-label">{BRAND.ritualSection.kicker}</p>
           <h2 className="t-display-xl rit__title">{product.ritual.title}</h2>
-          {product.ritual.lines.map((l) => (
-            <p key={l} className="t-heading-m rit__line">
-              {l}
-            </p>
-          ))}
+
+          {/* The three ritual lines were three stacked paragraphs at the same
+              weight. They are a sequence, so they are numbered like one. */}
+          <ol className="rit__steps">
+            {product.ritual.lines.map((l, i) => (
+              <li key={l} className="rit__step">
+                <span className="t-data rit__step-n">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="t-heading-s rit__step-t">{l}</span>
+              </li>
+            ))}
+          </ol>
+
+          <ul className="rit__std">
+            {BRAND.badges.map((b) => (
+              <li key={b} className="t-label">
+                {b}
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="rit__std">
-          {BRAND.badges.map((b) => (
-            <li key={b} className="t-label">
-              {b}
-            </li>
-          ))}
-        </ul>
+
+        <aside className="rit__cta" aria-label={`Buy ${product.name}`}>
+          <p className="t-label t-muted">Start the ritual</p>
+
+          <p className="t-heading-s rit__cta-pack">
+            {tier?.name ?? `${pack.servings} Servings`}
+          </p>
+
+          <p className="rit__cta-price">
+            <span className="t-heading-m">{money(pack.price)}</span>
+            <span className="t-data t-muted rit__cta-unit">
+              {money(Math.round(perServing(pack)))}/shot
+            </span>
+          </p>
+
+          <div className="rit__cta-days">
+            <div className="rit__cta-bar" aria-hidden="true">
+              <span
+                style={{
+                  width: `${Math.min(100, (pack.servings / RITUAL_NOTE.days) * 100)}%`,
+                }}
+              />
+            </div>
+            <p className="t-body-s rit__cta-note">
+              {covers ? (
+                <>
+                  Covers the full <Data>{RITUAL_NOTE.days}</Data> day ritual the
+                  brand recommends.
+                </>
+              ) : (
+                <>
+                  <Data>{pack.servings}</Data> of{" "}
+                  <Data>{RITUAL_NOTE.days}</Data> days.{" "}
+                  <a href="#packs" className="rit__cta-link">
+                    Compare the packs
+                  </a>
+                </>
+              )}
+            </p>
+          </div>
+
+          <Button variant="primary" full onClick={onAdd} disabled={!pack.available}>
+            {pack.available ? "Add to cart" : "Out of stock"}
+          </Button>
+
+          <p className="t-body-s t-muted rit__cta-fine">
+            Free shipping. Dispatches in 24 to 48 hours. Write to us within{" "}
+            <Data>{7}</Data> days of delivery if it is not right for you.
+          </p>
+        </aside>
       </div>
+
       <blockquote className="t-body rit__statement">{BRAND.statement}</blockquote>
     </Band>
   );

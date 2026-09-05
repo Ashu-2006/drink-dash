@@ -1,0 +1,101 @@
+/* ==========================================================================
+   The Diaries list item.
+   ========================================================================== */
+
+.dlist {
+  display: grid;
+  /* auto-fit, so a row of two stretches to fill rather than sitting in the
+     left two thirds of an empty three-up. */
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--s-6);
+  margin-top: var(--s-6);
+}
+
+/* A fixed three, holes and all. */
+.dlist--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dcard {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.dcard__media {
+  overflow: hidden;
+  border-radius: var(--radius-media);
+  background: var(--theme-soft);
+}
+
+/* The article art is a cut-out, not a photograph filling a frame, so it is
+   contained on the article's own tint with room around it. */
+.dcard__art {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  padding: var(--s-4);
+  transition: transform var(--dur-5) var(--ease-smooth);
+}
+
+.dcard:hover .dcard__art {
+  transform: scale(1.03);
+}
+
+.dcard__meta {
+  margin-top: var(--s-3);
+}
+
+/* Two lines, both of them. A four line headline next to a one line headline
+   makes two cards look like two different components. */
+.dcard__title,
+.dcard__dek {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.dcard__title {
+  text-wrap: pretty;
+}
+
+/* The whole card is the link. Everything inside it is inert text, so the
+   stretched hit area can sit on top without swallowing anything. */
+.dcard__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-media);
+}
+
+.dcard__link:hover {
+  color: var(--theme-deep);
+}
+
+/* The focus ring comes from the global :focus-visible::after rule in base.css
+   and follows this radius, so the whole card is ringed rather than a strip of
+   text inside it. */
+
+@media (prefers-reduced-motion: reduce) {
+  .dcard:hover .dcard__art {
+    transform: none;
+  }
+}
+
+@media (max-width: 991px) {
+  .dlist--3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .dlist,
+  .dlist--3 {
+    grid-template-columns: 1fr;
+    gap: var(--s-5);
+  }
+}

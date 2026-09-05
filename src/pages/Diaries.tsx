@@ -13,8 +13,8 @@
 
 import { Link } from "react-router-dom";
 import { Band, Reveal, SplitHeading, Button } from "../components/primitives";
+import { DiaryList } from "../components/DiaryCard";
 import { diaries } from "../lib/diaries";
-import { byHandle } from "../lib/catalog";
 import { img } from "../lib/media";
 import "./diaries.css";
 import { useTitle } from "../lib/useTitle";
@@ -86,39 +86,10 @@ export default function Diaries() {
           </Reveal>
         )}
 
-        <Reveal selector=".dia-card" stagger={0.08}>
-          <div className={`dia-grid${useLead ? " dia-grid--rest" : ""}`}>
-            {(useLead ? rest : sorted).map((d) => (
-              <article className={`dia-card theme-${d.theme}`} key={d.slug}>
-                <Link to={`/dash-diaries/${d.slug}`} className="dia-card__media">
-                  <img className="dia-art" {...img(d.art)} loading="lazy" />
-                </Link>
-                <p className="t-label t-muted">
-                  <time dateTime={d.iso}>{d.date}</time> · {d.readingMinutes} min
-                  read
-                </p>
-                <h2 className="t-heading-s">
-                  <Link to={`/dash-diaries/${d.slug}`}>{d.title}</Link>
-                </h2>
-                <p className="t-body-s t-muted">{d.dek}</p>
-                <ShotLink handle={d.productHandle} />
-              </article>
-            ))}
-          </div>
+        <Reveal selector=".dcard" stagger={0.08}>
+          <DiaryList items={useLead ? rest : sorted} />
         </Reveal>
       </Band>
     </div>
-  );
-}
-
-/** Each article is about one shot. The link is the whole point of the journal
-    existing on a shop, so it is on every card rather than only in the body. */
-export function ShotLink({ handle }: { handle: string }) {
-  const product = byHandle(handle);
-  if (!product) return null;
-  return (
-    <Link to={`/products/${product.handle}`} className="t-data dia-shot">
-      About {product.name}
-    </Link>
   );
 }

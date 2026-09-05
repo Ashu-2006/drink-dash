@@ -27,6 +27,8 @@ import {
   reduced,
 } from "../components/primitives";
 import { NextIcon } from "../components/icons";
+import { DiaryList } from "../components/DiaryCard";
+import { diaries as allDiaries } from "../lib/diaries";
 import {
   BRAND,
   concernOf,
@@ -447,21 +449,23 @@ function Ladder() {
 
 /* ------------------------------------------------------------ 8. diaries -- */
 
+/* Newest first, three across. The catalogue is the source, not a hand kept
+   list of titles that has to be edited twice. */
+const HOME_DIARY_COUNT = 3;
+
 function Diaries() {
+  const homeDiaries = [...allDiaries]
+    .sort((a, b) => b.iso.localeCompare(a.iso))
+    .slice(0, HOME_DIARY_COUNT);
+
   return (
     <Band tone="cream" clip="none">
       <SectionHead eyebrow="Reading" title={BRAND.diaries.title} />
-      <Reveal selector=".diary" stagger={0.07}>
-        <div className="diaries">
-          {BRAND.diaries.posts.map((post, i) => (
-            <article key={post.title} className={`diary theme-${products[i]?.theme ?? "glow"}`}>
-              <span className="t-data diary__num">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="t-heading-s diary__title">{post.title}</h3>
-              <p className="t-body-s t-muted">{post.blurb}</p>
-              <span className="t-label diary__more link-arrow">Read more <NextIcon size="1em" /></span>
-            </article>
-          ))}
-        </div>
+      {/* The same card the Diaries index and the article footer use. This was
+          a look-alike built from a second copy list that linked nowhere, so
+          the home page advertised three articles it could not open. */}
+      <Reveal selector=".dcard" stagger={0.07}>
+        <DiaryList items={homeDiaries} level={3} />
       </Reveal>
 
       <div className="social">

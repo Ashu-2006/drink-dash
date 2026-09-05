@@ -234,6 +234,10 @@ export function StickyBuyBar({
 
 /* -------------------------------------------------------------------------- */
 
+/* The footer was four link columns, a wordmark, and a base rule carrying two
+   more paragraphs: eleven headings and links wide before anything useful. It
+   is three columns now. Legal moved to the base rule, which is where legal
+   belongs and where nobody has to read past it to find the shop. */
 export function Footer() {
   return (
     <footer className="ft">
@@ -243,13 +247,7 @@ export function Footer() {
 
         <div className="ft__cols">
           <div className="ft__col">
-            <p className="t-label">Helpful Links</p>
-            {BRAND.footer.helpful.map((l) => (
-              <span key={l} className="ft__link t-body-s">{l}</span>
-            ))}
-          </div>
-          <div className="ft__col">
-            <p className="t-label">Quick Shop</p>
+            <p className="t-label">Shop</p>
             {products.map((p) => (
               <Link key={p.handle} to={`/products/${p.handle}`} className="ft__link t-body-s">
                 {p.name}
@@ -257,8 +255,8 @@ export function Footer() {
             ))}
           </div>
           <div className="ft__col">
-            <p className="t-label">Quick Links</p>
-            {BRAND.footer.legal.map((l) => (
+            <p className="t-label">Company</p>
+            {BRAND.footer.helpful.map((l) => (
               <span key={l} className="ft__link t-body-s">{l}</span>
             ))}
           </div>
@@ -266,13 +264,21 @@ export function Footer() {
             <p className="t-label">Get in touch</p>
             <span className="ft__link t-body-s">{COMMERCE.support.email}</span>
             <span className="ft__link t-data">{COMMERCE.support.phone}</span>
-            <p className="t-data ft__pay">{COMMERCE.paymentMethods.join(" · ")}</p>
           </div>
         </div>
 
         <p className="ft__mark t-display-xxl" aria-hidden="true">DASH</p>
 
         <div className="ft__base">
+          <ul className="ft__legal t-body-s t-muted">
+            {BRAND.footer.legal.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+          <p className="t-data ft__pay">{COMMERCE.paymentMethods.join(" · ")}</p>
+        </div>
+
+        <div className="ft__fine">
           <p className="t-body-s t-muted">{BRAND.footer.copyright}</p>
           <p className="t-body-s t-muted ft__disclaim">
             Food supplement. Not for medicinal use. These statements have not been

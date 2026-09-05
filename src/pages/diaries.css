@@ -54,65 +54,7 @@
   justify-items: start;
 }
 
-/* ------------------------------------------------------------------ cards */
-
-.dia-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--s-6);
-  margin-top: var(--s-4);
-}
-
-.dia-grid--rest {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: var(--s-8);
-}
-
-.dia-card {
-  display: grid;
-  gap: var(--s-2);
-  align-content: start;
-}
-
-.dia-card__media img {
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  border-radius: var(--radius-media);
-  background: var(--theme-soft);
-  transition: transform var(--dur-5) var(--ease-smooth);
-}
-
-.dia-card__media .dia-art {
-  padding: var(--s-4);
-}
-
-.dia-card__media {
-  overflow: hidden;
-  border-radius: var(--radius-media);
-  display: block;
-}
-
-.dia-card__media:hover img {
-  transform: scale(1.03);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dia-card__media:hover img {
-    transform: none;
-  }
-}
-
-.dia-card h2 a:hover,
 .dia-lead h2 a:hover {
-  color: var(--theme-deep);
-}
-
-.dia-shot {
-  justify-self: start;
-  margin-top: var(--s-2);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
   color: var(--theme-deep);
 }
 
@@ -153,11 +95,15 @@
   max-width: 40rem;
 }
 
+/* Full shell width. The prose takes whatever the buy card does not, so the
+   card sits hard against the right edge and the gutter is the gap and nothing
+   else. On a 1280 shell that leaves the measure around 850px, which is wider
+   than is comfortable to read; the trade is deliberate and noted here so the
+   next person does not think it was an accident. */
 .art-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 34rem) minmax(0, 20rem);
-  gap: var(--s-9);
-  justify-content: space-between;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 23rem);
+  gap: var(--s-8);
   align-items: start;
 }
 
@@ -225,10 +171,6 @@
     max-width: 18rem;
     justify-self: start;
   }
-  .dia-grid,
-  .dia-grid--rest {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .art-wrap {
     grid-template-columns: 1fr;
     gap: var(--s-7);
@@ -244,9 +186,5 @@
   .dia-lead {
     grid-template-columns: 1fr;
     gap: var(--s-5);
-  }
-  .dia-grid,
-  .dia-grid--rest {
-    grid-template-columns: 1fr;
   }
 }

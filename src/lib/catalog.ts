@@ -61,6 +61,24 @@ export const tierFor = (servings: number) =>
 
 /** Verbatim footnote attached to the Recommended Pack on every product page.
     This is the brand's own results horizon. It replaced an invented one. */
+/* --------------------------------------------------------------------------
+   The four beats of every HOW IT WORKS section.
+
+   The brand publishes the mechanism as four paragraphs with the same shape on
+   all three products: the pathways claim, the formulated-to-help list, the
+   works-with-the-body contrast, and the result. These are the four labels the
+   product page cards them under. They are structural, saying what each
+   paragraph is about, and make no claim of their own; the paragraph beneath
+   each is the live copy, verbatim. Set in the display face, so no punctuation.
+   -------------------------------------------------------------------------- */
+
+export const MECHANISM_BEATS = [
+  "More than one pathway",
+  "What it is built to do",
+  "With the body not against it",
+  "What that adds up to",
+] as const;
+
 export const RITUAL_NOTE = {
   text: "For noticeable results, we recommend a 30-day ritual.",
   days: 30,
@@ -746,18 +764,44 @@ export const activeConcerns = () =>
 
 /** Rows for the comparison table. Values are resolved per product at render
     time so a new product needs no change here. */
+/* Grouped, because seven attributes set at one weight is a list, not a
+   comparison: the eye has nowhere to land and every row argues as loudly as
+   every other. Three groups answer three different questions, and the one row
+   carrying the brand's strongest asset, a named dose, is marked so it can be
+   set heavier than the rows around it. */
+export type CompareGroup = "fit" | "formula" | "proof";
+
+export const comparisonGroups: { id: CompareGroup; label: string }[] = [
+  { id: "fit", label: "What it is for" },
+  { id: "formula", label: "What is in it" },
+  { id: "proof", label: "What it is worth" },
+];
+
 export const comparisonRows: {
   label: string;
+  group: CompareGroup;
+  /** Set heavier than its neighbours. One per table, at most. */
+  lead?: true;
   get: (p: Product) => string;
 }[] = [
-  { label: "Best for", get: (p) => concernOf(p)?.label ?? "" },
-  { label: "Descriptor", get: (p) => p.descriptor },
-  { label: "Hero active", get: (p) => `${p.formula[0].name} ${p.formula[0].dose ?? ""}`.trim() },
-  { label: "Actives", get: (p) => String(p.actives.length) },
-  { label: "Flavour", get: (p) => p.flavour },
-  { label: "Reviews", get: (p) => `${p.reviewCount} at ${p.rating} stars` },
+  { label: "Best for", group: "fit", get: (p) => concernOf(p)?.label ?? "" },
+  { label: "Descriptor", group: "fit", get: (p) => p.descriptor },
+  { label: "Flavour", group: "fit", get: (p) => p.flavour },
+  {
+    label: "Hero active",
+    group: "formula",
+    lead: true,
+    get: (p) => `${p.formula[0].name} ${p.formula[0].dose ?? ""}`.trim(),
+  },
+  { label: "Actives", group: "formula", get: (p) => String(p.actives.length) },
+  {
+    label: "Reviews",
+    group: "proof",
+    get: (p) => `${p.reviewCount} at ${p.rating} stars`,
+  },
   {
     label: "Price per shot, Recommended Pack",
+    group: "proof",
     get: (p) => {
       const k = p.packs.find((x) => x.servings === 30) ?? p.packs[0];
       return money(Math.round(perServing(k)));
