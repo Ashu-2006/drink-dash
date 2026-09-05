@@ -1,0 +1,212 @@
+/* ==========================================================================
+   The Dash Diaries: index and article
+   ========================================================================== */
+
+.dia-hero {
+  display: grid;
+  gap: var(--s-4);
+  max-width: 60rem;
+}
+
+.dia-hero__lede {
+  max-width: 42rem;
+}
+
+.dia-empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-4);
+  padding-block: var(--s-8);
+}
+
+/* ------------------------------------------------------------------- lead */
+
+.dia-lead {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: var(--s-7);
+  align-items: center;
+  padding: var(--s-6);
+  border-radius: var(--radius-card);
+  background: var(--theme-soft);
+}
+
+.dia-lead__media img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-media);
+}
+
+.dia-lead__body {
+  display: grid;
+  gap: var(--s-3);
+  justify-items: start;
+}
+
+/* ------------------------------------------------------------------ cards */
+
+.dia-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-6);
+  margin-top: var(--s-4);
+}
+
+.dia-grid--rest {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: var(--s-8);
+}
+
+.dia-card {
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+}
+
+.dia-card__media img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--radius-media);
+  background: var(--theme-soft);
+  transition: transform var(--dur-5) var(--ease-smooth);
+}
+
+.dia-card__media {
+  overflow: hidden;
+  border-radius: var(--radius-media);
+  display: block;
+}
+
+.dia-card__media:hover img {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dia-card__media:hover img {
+    transform: none;
+  }
+}
+
+.dia-card h2 a:hover,
+.dia-lead h2 a:hover {
+  color: var(--theme-deep);
+}
+
+.dia-shot {
+  justify-self: start;
+  margin-top: var(--s-2);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  color: var(--theme-deep);
+}
+
+/* ---------------------------------------------------------------- article */
+
+.art-hero {
+  display: grid;
+  gap: var(--s-4);
+  max-width: 52rem;
+}
+
+.art-hero__title {
+  /* Article titles are long and contain punctuation, so they take the body
+     face rather than Degular Display, which has no punctuation in this cut. */
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.art-hero__dek {
+  max-width: 40rem;
+}
+
+.art-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 34rem) minmax(0, 20rem);
+  gap: var(--s-9);
+  justify-content: space-between;
+  align-items: start;
+}
+
+.art-body {
+  display: grid;
+  gap: var(--s-6);
+}
+
+.art-body section {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.art-h2 {
+  margin-top: var(--s-2);
+}
+
+.art-list {
+  display: grid;
+  gap: var(--s-3);
+  padding-left: var(--s-5);
+}
+
+.art-list li {
+  list-style: disc;
+}
+
+.art-note {
+  padding-top: var(--s-4);
+  border-top: var(--hairline-width) solid var(--hairline);
+}
+
+/* --------------------------------------------------------------- buy card */
+
+.art-buy {
+  position: sticky;
+  top: var(--s-9);
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-5);
+  border-radius: var(--radius-card);
+  background: var(--theme-soft);
+}
+
+.art-buy__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-media);
+  margin-bottom: var(--s-2);
+}
+
+.art-buy__more {
+  justify-self: start;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (max-width: 991px) {
+  .dia-grid,
+  .dia-grid--rest {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .art-wrap {
+    grid-template-columns: 1fr;
+    gap: var(--s-7);
+  }
+  /* Unpinned on tablet and below: a sticky card in a single column follows the
+     reader down the article and covers the argument it depends on. */
+  .art-buy {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .dia-lead {
+    grid-template-columns: 1fr;
+    gap: var(--s-5);
+  }
+  .dia-grid,
+  .dia-grid--rest {
+    grid-template-columns: 1fr;
+  }
+}

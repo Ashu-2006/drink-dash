@@ -1,0 +1,289 @@
+/* ==========================================================================
+   Chrome: notice bar, header, menu, intro, sticky buy bar, footer.
+   Tokens only. No shadows except the focus ring in base.css.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------- notice */
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  background: var(--ink);
+  color: var(--cream);
+  padding: 0.8em var(--grid-margin);
+  text-align: center;
+  position: relative;
+  z-index: var(--z-header);
+}
+
+.notice > span + span::before {
+  content: "·";
+  margin-inline-end: var(--s-5);
+  opacity: 0.5;
+}
+
+@media (max-width: 47.9375em) {
+  .notice > span + span { display: none; }
+}
+
+/* -------------------------------------------------------------------- header */
+
+.hdr {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--cream);
+  border-bottom: 1px solid var(--hairline);
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--dur-5) var(--ease-smooth);
+}
+
+.hdr--up { transform: translate3d(0, -110%, 0); }
+
+.hdr__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  min-height: 4.5em;
+}
+
+.hdr__mark {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-target);
+}
+
+/* The wordmark. The real asset from the store. */
+.logo { display: block; }
+.logo__img { height: 2.1em; width: auto; }
+
+/* The path motif as a section rule. */
+.pathrule {
+  display: block;
+  width: 100%;
+  height: 3.5em;
+  color: var(--theme-deep);
+  opacity: 0.55;
+}
+.pathrule--flip { transform: scaleX(-1); }
+
+.hdr__nav { display: flex; align-items: center; gap: var(--s-6); }
+
+.hdr__link,
+.ft__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-target);
+  font-weight: 600;
+}
+
+.hdr__link { position: relative; }
+
+/* A hairline that wipes in from the left. */
+.hdr__link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.85em;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-3) var(--ease-smooth);
+}
+.hdr__link:hover::after,
+.hdr__link:focus-visible::after { transform: scaleX(1); }
+
+.hdr__end { display: flex; align-items: center; gap: var(--s-2); }
+.hdr__menu { display: none; }
+
+@media (max-width: 61.9375em) {
+  .hdr__nav { display: none; }
+  .hdr__menu { display: inline-flex; }
+}
+
+/* ---------------------------------------------------------------------- menu */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-menu);
+  background: var(--ink);
+  color: var(--cream);
+  pointer-events: none;
+  opacity: 0;
+  clip-path: inset(100% round 4em);
+  transform: scale(0.5) translate3d(0, 7.5em, 0);
+  transition: clip-path var(--dur-6) var(--ease-smooth),
+    transform var(--dur-6) var(--ease-smooth),
+    opacity var(--dur-2) var(--ease-smooth);
+}
+
+.menu--on {
+  pointer-events: auto;
+  opacity: 1;
+  clip-path: inset(0.5em round 2em);
+  transform: scale(1) translate3d(0, 0, 0);
+}
+
+.menu__inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-7);
+  padding-block: var(--s-8);
+  overflow-y: auto;
+}
+
+.menu__inner nav { display: grid; gap: var(--s-2); }
+.menu__link { display: block; }
+
+.menu__shop { display: grid; gap: var(--s-2); border-top: 1px solid rgba(255,253,246,0.2); padding-top: var(--s-5); }
+
+.menu__shop-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: var(--hit-target);
+}
+
+.menu__dot {
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  background: var(--theme-base);
+  flex-shrink: 0;
+}
+
+.menu__close { color: inherit; align-self: start; min-height: var(--hit-target); }
+
+/* ------------------------------------------------------------------- curtain */
+
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--ink);
+  clip-path: inset(0% round 0 0 0 0);
+  transition: clip-path var(--dur-7) var(--ease-smooth);
+}
+
+/* Lifts by clipping upward, so it reads as a curtain rather than a fade, and
+   the bottom corners round as it goes to echo the band system underneath. */
+.curtain--up {
+  clip-path: inset(0% 0% 100% 0% round 0 0 var(--band-radius) var(--band-radius));
+}
+
+.curtain__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .curtain { transition: none; }
+}
+
+/* ------------------------------------------------------------------- buy bar */
+
+.buybar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-sticky-bar);
+  background: var(--ink);
+  color: var(--cream);
+  transform: translate3d(0, 110%, 0);
+  transition: transform var(--dur-5) var(--ease-smooth);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.buybar--on { transform: translate3d(0, 0, 0); }
+
+.buybar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  min-height: 4.5em;
+}
+
+.buybar__id { display: flex; align-items: center; gap: var(--s-3); min-width: 0; }
+
+.buybar__img {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 0.5em;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.buybar__text { min-width: 0; }
+.buybar__name {
+  display: block;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.buybar__meta { display: block; font-size: 0.8em; opacity: 0.72; }
+
+/* -------------------------------------------------------------------- footer */
+
+.ft {
+  background: var(--ink);
+  color: var(--cream);
+  clip-path: inset(0 round var(--band-radius) var(--band-radius) 0 0);
+  padding-block: var(--section-pad) var(--s-6);
+  overflow: hidden;
+}
+
+.ft__lede { max-width: 30em; }
+.ft__sub { margin-top: var(--s-3); max-width: 34em; }
+.ft .t-muted { color: rgba(255, 253, 246, 0.66); }
+
+.ft__cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11em, 1fr));
+  gap: var(--s-6);
+  margin-top: var(--s-8);
+  padding-top: var(--s-6);
+  border-top: 1px solid rgba(255, 253, 246, 0.2);
+}
+
+.ft__col { display: grid; align-content: start; gap: var(--s-1); }
+.ft__col .t-label { margin-bottom: var(--s-2); }
+.ft__link { min-height: 2.25em; }
+.ft__pay { margin-top: var(--s-3); font-size: 0.8em; opacity: 0.7; }
+
+@media (min-width: 48em) {
+  .ft__link { min-height: var(--hit-target); }
+}
+
+/* The oversized ghosted wordmark. Taken from the boxes, which all carry a
+   giant tonal DASH one step off the ground colour. */
+.ft__mark {
+  margin-top: var(--s-7);
+  font-size: clamp(3rem, 15vw, 12rem);
+  line-height: 0.78;
+  color: rgba(255, 253, 246, 0.09);
+  user-select: none;
+}
+
+.ft__base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-top: var(--s-5);
+  border-top: 1px solid rgba(255, 253, 246, 0.2);
+}
+
+.ft__disclaim { max-width: 34em; }

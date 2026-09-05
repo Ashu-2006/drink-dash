@@ -1,0 +1,258 @@
+/* ==========================================================================
+   Product list layout. Tokens only. No shadows.
+   ========================================================================== */
+
+.shop-hero__title { margin-top: var(--s-4); max-width: 20em; }
+.shop-hero__lede { margin-top: var(--s-5); max-width: 34em; }
+
+/* ---------------------------------------------------------------- rail ---- */
+
+/* A floating control, not a full width stripe. A cream bar spanning the page
+   cut through the coloured bands and read as a seam, and it covered the CTA it
+   scrolled over. A centred pill takes less vertical space and reads as a
+   control. Its own overflow container, so the page never scrolls sideways. */
+.rail {
+  position: sticky;
+  top: 5.25em;
+  z-index: 40;
+  pointer-events: none;
+  /* Zero height so the pill floats over the band rather than reserving a
+     stripe. align-items must not stretch, or a zero height container
+     flattens its own children. */
+  height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.rail .shell {
+  display: flex;
+  justify-content: center;
+  padding-inline: var(--grid-margin);
+}
+
+.rail__scroll {
+  pointer-events: auto;
+  display: flex;
+  gap: var(--s-1);
+  max-width: 100%;
+  padding: var(--s-1);
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+}
+
+.rail__scroll > * { flex-shrink: 0; }
+
+/* Chips sit on ink, so they invert. */
+.rail__scroll .chip {
+  background: transparent;
+  color: var(--cream);
+  box-shadow: none;
+}
+
+.rail__scroll .chip--active {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.rail__scroll .chip--outline {
+  box-shadow: inset 0 0 0 1.5px rgba(255, 253, 246, 0.3);
+}
+
+/* The first band after the rail needs room for the floating control. */
+.rail + div .band { padding-top: calc(var(--section-pad) + 3em); }
+
+/* ------------------------------------------------------------- sku band ---- */
+
+.sku {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-8);
+  align-items: start;
+}
+
+.sku__media { position: sticky; top: 9em; min-width: 0; }
+.sku__media .shot { border-radius: var(--radius-card); }
+
+.sku__thumbs {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+
+.sku__thumbs img {
+  width: 5.5em;
+  height: 5.5em;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: var(--radius-media);
+}
+
+.sku__buy { min-width: 0; }
+.sku__buy > * + * { margin-top: var(--s-4); }
+.sku__name { margin-top: var(--s-3); }
+.sku__flavour { font-weight: 600; }
+.sku__line { max-width: 30em; }
+
+.sku__actives {
+  display: grid;
+  gap: 0;
+  margin-top: var(--s-5);
+  border-top: 1.5px solid rgba(35, 31, 26, 0.22);
+}
+
+.sku__actives li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-block: 0.7em;
+  border-bottom: 1px solid rgba(35, 31, 26, 0.14);
+}
+
+.sku__actives b { font-weight: 600; }
+
+.sku__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+
+.sku__actions { display: grid; gap: var(--s-3); justify-items: start; }
+.sku__actions .btn { width: 100%; }
+
+.sku__more {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-target);
+}
+
+@media (max-width: 61.9375em) {
+  .sku { grid-template-columns: 1fr; gap: var(--s-6); }
+  .sku__media { position: static; }
+}
+
+/* ---------------------------------------------------------------- grid ---- */
+
+.grid__facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-6);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15em, 1fr));
+  gap: var(--s-5);
+}
+
+.gcard {
+  display: grid;
+  align-content: start;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  border-radius: var(--radius-card);
+  background: var(--theme-soft);
+}
+
+.gcard .shot { border-radius: var(--radius-media); margin-bottom: var(--s-3); }
+
+.gcard__hero {
+  justify-self: start;
+  padding: 0.3em 0.6em;
+  border-radius: var(--radius-chip);
+  background: var(--theme-base);
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.gcard__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+
+/* ------------------------------------------------------------- compare ---- */
+
+.cmp { margin-top: var(--s-7); min-width: 0; }
+.cmp__picker { margin-top: var(--s-6); margin-bottom: var(--s-4); }
+
+.cmp__table { min-width: 34em; }
+
+.cmp__table th,
+.cmp__table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Frozen first column so the row label stays readable while the values scroll. */
+.cmp__stub {
+  position: sticky;
+  left: 0;
+  background: var(--cream);
+  font-weight: 600;
+  min-width: 11em;
+}
+
+.cmp__head { min-width: 9em; }
+
+.cmp__swatch {
+  display: block;
+  width: 100%;
+  height: 0.4em;
+  margin-bottom: var(--s-2);
+  border-radius: var(--radius-pill);
+  background: var(--theme-base);
+}
+
+.cmp__link {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-target);
+}
+
+/* ------------------------------------------------------------- bundles ---- */
+
+.bundles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17em, 1fr));
+  gap: var(--s-5);
+  margin-top: var(--s-8);
+}
+
+.bundle {
+  display: grid;
+  align-content: start;
+  gap: var(--s-3);
+  padding: var(--s-5);
+  border-radius: var(--radius-card);
+  background: var(--white);
+}
+
+.bundle__note { max-width: 30em; }
+
+.bundle__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--hairline);
+}
+
+.bundle__foot .t-data { font-size: var(--type-heading-s); font-weight: 600; }
+
+.bundles__foot { margin-top: var(--s-7); max-width: 44em; }

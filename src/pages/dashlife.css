@@ -1,0 +1,151 @@
+/* ==========================================================================
+   Dash Life
+   ========================================================================== */
+
+.life-hero {
+  display: grid;
+  gap: var(--s-5);
+  max-width: 68rem;
+}
+
+.life-hero__body {
+  display: grid;
+  gap: var(--s-4);
+  max-width: 46rem;
+}
+
+/* ------------------------------------------------------------- principles */
+
+.life-prins {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-8);
+}
+
+.life-prin {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+  padding-top: var(--s-4);
+  border-top: var(--hairline-width) solid var(--hairline);
+}
+
+/* ---------------------------------------------------------------- experts */
+
+.life-experts {
+  display: grid;
+  gap: var(--s-4);
+  max-width: 46rem;
+  margin-top: var(--s-5);
+}
+
+.life-cuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-6);
+  margin-top: var(--s-8);
+}
+
+.life-cuts__lede {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--s-3);
+  max-width: 46rem;
+}
+
+.life-cut {
+  display: grid;
+  gap: var(--s-2);
+  align-content: start;
+  padding: var(--s-5);
+  border-radius: var(--radius-card);
+  background: var(--cream);
+}
+
+.life-cut__n {
+  color: var(--theme-deep);
+}
+
+/* ----------------------------------------------------------------- tested */
+
+.life-tested {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-8);
+  align-items: start;
+}
+
+.life-tested__lede {
+  margin-top: var(--s-5);
+  max-width: 34rem;
+}
+
+.life-tested__sub {
+  margin-bottom: var(--s-4);
+}
+
+.life-tested__list {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.life-tested__list li {
+  padding-block: var(--s-3);
+  border-top: var(--hairline-width) solid rgba(255, 253, 246, 0.2);
+}
+
+/* ------------------------------------------------------------------- foot */
+
+.life-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.life-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  margin-top: var(--s-8);
+  padding-top: var(--s-6);
+  border-top: var(--hairline-width) solid var(--hairline);
+}
+
+.life-read {
+  margin-top: var(--s-8);
+  display: grid;
+  gap: var(--s-3);
+}
+
+.life-read ul {
+  display: grid;
+  gap: var(--s-3);
+  max-width: 56rem;
+}
+
+.life-read a {
+  display: block;
+  padding-top: var(--s-3);
+  border-top: var(--hairline-width) solid var(--hairline);
+  transition: color var(--dur-2) var(--ease-smooth);
+}
+
+.life-read a:hover {
+  color: var(--theme-deep);
+}
+
+@media (max-width: 991px) {
+  .life-cuts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .life-prins,
+  .life-tested {
+    grid-template-columns: 1fr;
+    gap: var(--s-6);
+  }
+}
