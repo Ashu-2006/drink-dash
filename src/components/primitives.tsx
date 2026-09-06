@@ -25,10 +25,27 @@ import {
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
 /* Images and late fonts change element positions after ScrollTrigger has
-   measured. Refresh once everything has settled. */
+   measured, and a trigger measured against a shorter page points at the wrong
+   part of the taller one.
+
+   `load` and `fonts.ready` were not enough on their own. Images are lazy, so
+   they decode as the reader approaches them, which is long after `load` has
+   fired and is precisely the moment the layout below them moves. Every one
+   that lands without reserved space shifts everything under it, and by the
+   foot of the home page the drift measured about four hundred pixels: enough
+   that a trigger's whole range sat above the element it belonged to.
+
+   `load` does not bubble, so image loads are caught in the capture phase.
+   Debounced, because a gallery can land a dozen at once and a refresh per
+   image is a dozen full recalculations. */
 if (typeof window !== "undefined") {
-  const refresh = () => ScrollTrigger.refresh();
+  let queued = 0;
+  const refresh = () => {
+    window.clearTimeout(queued);
+    queued = window.setTimeout(() => ScrollTrigger.refresh(), 120);
+  };
   window.addEventListener("load", refresh);
+  document.addEventListener("load", refresh, true);
   if (document.fonts) document.fonts.ready.then(refresh).catch(() => {});
 }
 
@@ -234,21 +251,70 @@ export function Reveal({
         : [ref.current];
       if (!targets.length) return;
 
-      /* Fail-safe: never hide content that is already on screen. A `from`
-         tween sets opacity 0 on the first frame, so if ScrollTrigger measures
-         before images have loaded and the trigger never fires, the content
-         stays invisible. Anything already in view is left alone. */
+      /* First fail-safe: never hide content that is already on screen. A
+         `from` tween sets opacity 0 on the first frame, so anything already
+         in view at mount is left alone. */
       const box = ref.current.getBoundingClientRect();
       if (box.top < window.innerHeight * 0.95) return;
 
-      gsap.from(targets, {
-        y,
-        opacity: 0,
-        duration: 0.6,
-        ease: "power3.out",
-        stagger,
-        scrollTrigger: { trigger: ref.current, start: "top 92%", once: true },
-      });
+      /* Second fail-safe, for everything the first one cannot see.
+
+         The first guard only asks about the moment of mount. It cannot help
+         with what happens after: the page grows as lazy images decode, so a
+         trigger measured against a shorter page can end up with its entire
+         range above the element it belongs to. The reader then arrives
+         already past the cached end, ScrollTrigger crosses start and end in a
+         single update, and `once` kills the trigger before the tween has
+         rendered forward. The content is left at opacity 0 with nothing alive
+         to ever move it, which is what happened to the shot shelf and, on a
+         slower load, to anything else near the foot of a long page.
+
+         So the reveal is not allowed to be the only thing standing between
+         the reader and the content. If a refresh or a leave finds us at or
+         past the start, the reveal has already been missed: show it outright
+         rather than animating it where nobody is looking. */
+      const show = (self: ScrollTrigger) => {
+        if (self.progress > 0) self.animation?.progress(1);
+      };
+
+      /* fromTo, not from, and the end state is stated rather than sampled.
+
+         `from` works out where to land by reading the element as it is at the
+         moment the tween is built. That reading is only trustworthy if the
+         element is sitting still. Give a target a CSS transition on the same
+         property and it is not: React's development double mount reverts the
+         first tween, the revert removes the inline opacity, CSS starts easing
+         back to its resting value, and the second tween samples that number
+         mid flight. It read zero off the shot shelf, wrote zero down as the
+         destination, and played a flawless animation from zero to zero. The
+         trigger fired, the tween completed, and three bottles stayed
+         invisible.
+
+         Stating both ends removes the guess. clearProps then hands the
+         property back to the stylesheet once the entrance is over, which is
+         where it belongs: the reveal is an entrance, not a permanent style,
+         and the shelf's own resting opacity is a decision for its own CSS. It
+         also means the worst case is now content at its stylesheet value
+         rather than content at zero. */
+      gsap.fromTo(
+        targets,
+        { y, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "power3.out",
+          stagger,
+          clearProps: "opacity,transform",
+          scrollTrigger: {
+            trigger: ref.current,
+            start: "top 92%",
+            once: true,
+            onRefresh: show,
+            onLeave: show,
+          },
+        }
+      );
     },
     { scope: ref }
   );

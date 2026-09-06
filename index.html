@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DASH Wellness Shots</title>
     <meta name="description" content="Your wellness routine, simplified to 60ml. Three science backed shots for skin, hair and metabolism." />
+
+    <!-- The tab. An SVG icon is enough for every current browser and stops the
+         automatic /favicon.ico request that was 404ing, because there was no
+         icon link here at all. iOS ignores SVG, so it gets the raster. -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#FF836B" />
+
+    <!-- The share card. og:image is root relative because no production
+         domain is set anywhere in this repo. Slack, Discord, LinkedIn and
+         Facebook resolve that against the page; X wants it absolute, so once
+         there is a real domain this and og:url should become full URLs. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DASH Wellness Shots" />
+    <meta property="og:title" content="DASH Wellness Shots" />
+    <meta property="og:description" content="Your wellness routine, simplified to 60ml. Three science backed shots for skin, hair and metabolism." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Take a shot. It's time to Dash. A Dash of Glow carton and two 60ml bottles on coral." />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DASH Wellness Shots" />
+    <meta name="twitter:description" content="Your wellness routine, simplified to 60ml. Three science backed shots for skin, hair and metabolism." />
+    <meta name="twitter:image" content="/og-image.png" />
+    <meta name="twitter:image:alt" content="Take a shot. It's time to Dash. A Dash of Glow carton and two 60ml bottles on coral." />
+
     <link rel="preload" href="/fonts/Champ-Black.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/GeneralSans-Variable.woff2" as="font" type="font/woff2" crossorigin />
   </head>
