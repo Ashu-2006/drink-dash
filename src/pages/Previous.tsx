@@ -87,7 +87,7 @@ function Hero() {
   const glow = oldProducts[0];
   return (
     <div className="theme-glow">
-      <Band tone="base" clip="bottom" overlap wide>
+      <Band tone="base" clip="bottom" wide>
         <div className="shell prev-hero">
           <div className="prev-hero__copy">
             <p className="t-label">Wellness shots</p>
@@ -180,7 +180,7 @@ function ConcernTiles() {
 function TrialTrio({ onAdd }: { onAdd: AddFn }) {
   return (
     <div className="theme-burn">
-      <Band tone="pale" clip="bottom" overlap>
+      <Band tone="pale" clip="bottom">
         <div className="ttrio">
           <div>
             <p className="t-label t-muted">
@@ -298,7 +298,7 @@ function Anatomy() {
 function HowItWorks() {
   return (
     <div className="theme-volume">
-      <Band tone="soft" clip="bottom" overlap>
+      <Band tone="soft" clip="bottom">
         <SectionHead eyebrow="The ritual" title="How it works" />
         <Reveal selector=".hcard" stagger={0.07}>
           <div className="hcards">
@@ -396,7 +396,7 @@ function ShotBand({ product, onAdd }: { product: OldProduct; onAdd: AddFn }) {
 
   return (
     <div id={`prev-${product.handle}`} className={`theme-${product.theme}`}>
-      <Band tone="base" clip="bottom" overlap>
+      <Band tone="base" clip="bottom">
         <div className="sband">
           <div className="sband__media">
             <Shot basename={product.images[0]} alt={product.name} ratio="1 / 1" />
@@ -479,7 +479,7 @@ function Reviews() {
 
   return (
     <div className="theme-glow">
-      <Band tone="soft" clip="bottom" overlap>
+      <Band tone="soft" clip="bottom">
         <SectionHead
           eyebrow="From customers"
           title="Sorted by how long they have taken it"

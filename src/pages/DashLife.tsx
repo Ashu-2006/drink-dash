@@ -79,7 +79,7 @@ export default function DashLife() {
   useTitle("Dash Life");
   return (
     <div className="theme-glow">
-      <Band tone="base" clip="bottom" overlap>
+      <Band tone="base" clip="bottom">
         <header className="life-hero">
           <p className="t-label">{LIFE.eyebrow}</p>
           <SplitHeading text={LIFE.title} className="t-display-xl" as="h1" />

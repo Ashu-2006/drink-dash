@@ -230,127 +230,125 @@
 
 /* ------------------------------------------------------------- compare ---- */
 
-/* The table had one weight for everything: seven attribute rows, all
-   t-body-s, all separated by the same hairline, with the row labels set
-   heavier than the values they label. The eye had nowhere to land.
+/* Flat: seven facts, one weight, no group headings. Structure comes from two
+   rules and a stub column rather than from type weight.
 
-   Three moves, in order of how much they do:
-     the labels go quiet and the values get the body size, so the content
-     outweighs its own axis;
-     the rows group under three headings, so the table answers three
-     questions instead of listing seven facts;
-     the named dose, which is the strongest thing the brand owns, is set
-     heavier than its neighbours and is the only row that is.
-   Rules now close groups instead of separating every row, which takes six
-   lines out of the table without taking any information out of it. */
+     a heavy rule under the head, so the head reads as a head
+     a hairline under every fact
+     a hairline down the right of the stub, so the labels are an axis rather
+       than a first column of content
 
-.cmp { margin-top: var(--s-7); min-width: 0; }
-.cmp__picker { margin-top: var(--s-6); margin-bottom: var(--s-4); }
+   Weight lands on numbers only. On a table of doses and prices the number is
+   what is being compared and the word beside it is the label for it. */
+
+.cmp { margin-top: var(--s-9); min-width: 0; }
 
 .cmp__table {
-  min-width: 34em;
+  width: 100%;
+  min-width: 46em;
   border-collapse: collapse;
 }
 
+/* Padding on all four sides. It used to be zero on the left, which put every
+   value hard against the stub's divider with nothing between the rule and the
+   first letter. */
 .cmp__table th,
 .cmp__table td {
   text-align: left;
   vertical-align: top;
-  padding: var(--s-3) var(--s-4);
+  padding: var(--s-5);
+  border-bottom: var(--hairline-width) solid var(--hairline);
 }
 
-/* Frozen first column so the row label stays readable while the values scroll. */
+/* Frozen, so the fact stays readable while the shots scroll past it. The
+   hairline down its right edge is what makes the labels read as an axis.
+   Flush left with the shell, so the row labels line up with the heading
+   above the table; only its right side has a rule to clear. */
 .cmp__stub {
   position: sticky;
   left: 0;
+  width: 15rem;
+  padding-left: 0;
   background: var(--cream);
-  min-width: 11em;
+  border-right: var(--hairline-width) solid var(--hairline);
 }
 
-/* Quiet. It names the axis; the value is the answer. */
-.cmp__row .cmp__stub {
-  font-weight: 500;
-  color: var(--muted);
+.cmp__label {
+  font-size: var(--size-font);
+  font-weight: 600;
 }
 
 /* ---- head ---- */
 
-.cmp__head {
-  min-width: 9em;
+/* Matched on `.cmp__table thead th` rather than on the class. A bare
+   `.cmp__head` loses to the `.cmp__table th` rule above on specificity, which
+   left the heavy rule under the stub and a hairline under the shots: one
+   rule drawn at two weights across the same row.
+
+   Extra room above, so the divider does not start hard against the top of the
+   product name. */
+.cmp__table thead th {
+  padding-top: var(--s-6);
   padding-bottom: var(--s-4);
-  border-bottom: 0.14em solid var(--ink);
+  border-bottom: 0.12em solid var(--ink);
 }
 
-.cmp__swatch {
-  display: block;
-  width: 100%;
-  height: 0.4em;
-  margin-bottom: var(--s-3);
-  border-radius: var(--radius-pill);
+.cmp__head {
+  min-width: 15em;
+}
+
+.cmp__name {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: var(--tr-heading);
+  font-size: clamp(1.6rem, 1.4vw + 0.9rem, 2.25rem);
+  line-height: 1;
+}
+
+.cmp__dot {
+  flex-shrink: 0;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 50%;
   background: var(--theme-base);
 }
 
-.cmp__name { display: block; }
-
-.cmp__from {
+.cmp__full {
   display: block;
-  margin-top: var(--s-1);
-  font-size: 0.82em;
+  margin-top: var(--s-2);
 }
 
-thead .cmp__stub {
-  align-self: end;
-  border-bottom: 0.14em solid var(--ink);
-}
-
-/* ---- groups ---- */
-
-.cmp__grouphead th {
-  padding-top: var(--s-6);
-  padding-bottom: var(--s-1);
-  font-weight: 500;
-}
-
-/* The first group opens straight under the head rule, so it needs no air of
-   its own on top of it. */
-.cmp__group:first-of-type .cmp__grouphead th {
-  padding-top: var(--s-4);
-}
-
-/* One rule per group rather than one per row. */
-.cmp__group:not(:last-child) .cmp__row:last-child th,
-.cmp__group:not(:last-child) .cmp__row:last-child td {
-  border-bottom: var(--hairline-width) solid var(--hairline);
-  padding-bottom: var(--s-4);
-}
+/* ---- cells ---- */
 
 .cmp__val {
   font-size: var(--size-font);
 }
 
-/* The one row that is allowed to shout. */
-.cmp__row--lead .cmp__val {
-  font-weight: 600;
-  font-size: 1.06em;
-}
-
-.cmp__row--lead .cmp__stub {
-  color: var(--ink);
+.cmp__strong {
+  display: block;
   font-weight: 600;
 }
 
-.cmp__row--buy th,
-.cmp__row--buy td {
-  padding-top: var(--s-5);
+.cmp__sub {
+  display: block;
+  margin-top: 0.15em;
 }
 
-.cmp__link {
+/* One active per line, so a five item list reads as a list rather than as a
+   paragraph of doses. */
+.cmp__pair {
+  display: block;
+}
+
+.cmp__pair + .cmp__pair {
+  margin-top: 0.35em;
+}
+
+.cmp__pair b {
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--hit-target);
 }
 
 /* ------------------------------------------------------------- bundles ---- */

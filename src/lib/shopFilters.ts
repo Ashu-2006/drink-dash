@@ -125,6 +125,57 @@ export function applyQuery(q: ShopQuery): Product[] {
   }
 }
 
+/* --------------------------------------------------------------------------
+   Option counts.
+
+   Every option carries the number of shots it would return. This is the fix
+   for the worst thing a filter can do, which is let someone select a value
+   that empties the page: a count of zero is visible before the click, and the
+   control is disabled, so the dead end is never reachable rather than being
+   apologised for afterwards.
+
+   Semantics are the ecommerce standard. A count is measured with that option
+   as the only selection in its OWN group, while every other group stays
+   applied. Because values inside a group are ORed, a count is a lower bound
+   once something in the same group is already selected: adding a second
+   concern can only widen the result. Showing the lower bound is right, since
+   the number then never promises more than it delivers.
+   -------------------------------------------------------------------------- */
+
+export type FacetCounts = {
+  concern: Record<string, number>;
+  size: Record<number, number>;
+  price: Record<string, number>;
+  inStock: number;
+};
+
+export function optionCounts(q: ShopQuery): FacetCounts {
+  const count = (patch: Partial<ShopQuery>) =>
+    products.filter((p) => matches(p, { ...q, ...patch })).length;
+
+  const concern: Record<string, number> = {};
+  for (const c of concernFacets()) concern[c.id] = count({ concern: [c.id] });
+
+  const size: Record<number, number> = {};
+  for (const s of sizeFacets()) size[s.servings] = count({ size: [s.servings] });
+
+  const price: Record<string, number> = {};
+  for (const b of PRICE_BANDS) price[b.id] = count({ price: [b.id] });
+
+  return { concern, size, price, inStock: count({ inStock: true }) };
+}
+
+/** Total catalogue size, for the "n of m" readout. */
+export const totalCount = () => products.length;
+
+/** Clears the facets and keeps the sort. Sort is a view preference, not a
+    filter, so a clear-all that reset it would be destroying something the
+    shopper did not ask to undo. */
+export const clearFacets = (q: ShopQuery): ShopQuery => ({
+  ...EMPTY_QUERY,
+  sort: q.sort,
+});
+
 export const activeCount = (q: ShopQuery) =>
   q.concern.length + q.size.length + q.price.length + (q.inStock ? 1 : 0);
 

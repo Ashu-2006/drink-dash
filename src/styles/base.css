@@ -174,7 +174,22 @@ table {
 /* --------------------------------------------------------------------------
    Bands. The core structural device.
    clip-path, not border-radius, so descendants including canvases are clipped.
-   Consecutive bands overlap so each reads as a card sliding under the next.
+
+   Bands do not overlap. They did: a negative margin pulled the next section
+   up under the rounded bottom so each band would read as a card sliding under
+   the next. It could not work with this radius, and the reason is worth
+   keeping so nobody puts it back.
+
+   A clipped corner is a hole. Whatever is behind the band shows through it.
+   With the next section pulled 45px up under a 160px arc, the hole revealed
+   two things at once: the body ground for the top 115px of the arc, then the
+   next section for the last 45px. Where the next section was another band it
+   also painted on top, being later in the tree, and sliced the arc flat 45px
+   before it finished. So every coloured band ended in either a two tone wedge
+   or an amputated curve, on every page. The only ground that is one colour
+   across the whole height of the arc is the page itself, so the page is what
+   the arc now reveals: each band ends where it ends, and the next one starts
+   there.
    -------------------------------------------------------------------------- */
 
 .band {
@@ -189,11 +204,6 @@ table {
 
 .band--flat {
   clip-path: none;
-}
-
-.band--overlap {
-  margin-bottom: calc(var(--band-radius) * -0.28);
-  padding-bottom: calc(var(--s-8) + var(--band-radius) * 0.28);
 }
 
 .band--cream { background: var(--cream); }
@@ -582,12 +592,31 @@ table {
 .disc__btn {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--s-4);
   width: 100%;
   min-height: var(--hit-target);
   padding-block: var(--s-4);
   text-align: left;
+}
+
+/* One step under a section title rather than half a step. At heading-s the
+   four triggers read as four headings and the band had two competing levels
+   of the same weight. */
+.disc__summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.25em;
+  line-height: 1.2;
+  letter-spacing: var(--tr-heading-s);
+}
+
+/* The scent. Sits with the caret rather than under the title, so the row
+   stays one line and the column of metas reads down the right edge. */
+.disc__meta {
+  flex-shrink: 0;
+  color: var(--muted);
 }
 
 .disc__sign {
@@ -634,9 +663,14 @@ table {
   transition: grid-template-rows var(--dur-4) var(--ease-smooth);
 }
 
+/* No padding on this element. It is the item in the 0fr track, and padding on
+   a grid item whose track is zero does not collapse with it: the content box
+   clamps to nothing and the padding is left behind as a strip, so every shut
+   row carried an invisible 24px of itself. The gap under an open panel is a
+   margin on the last child instead, which the overflow clip contains and the
+   zero track removes. */
 .disc__body {
   overflow: hidden;
-  padding-bottom: var(--s-5);
   max-width: 44em;
   opacity: 0;
   transition: opacity var(--dur-2) var(--ease-smooth);
@@ -648,6 +682,7 @@ table {
 }
 
 .disc__body > * + * { margin-top: var(--s-3); }
+.disc__body > :last-child { margin-bottom: var(--s-5); }
 
 @media (prefers-reduced-motion: reduce) {
   .disc__panel,

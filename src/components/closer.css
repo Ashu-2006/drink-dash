@@ -1,0 +1,256 @@
+/* ==========================================================================
+   The closer: three bottles on a shelf, and a band that takes their colour.
+   Tokens only. No shadows: the contact mark under each bottle is a flat
+   ellipse, not a blur.
+   ========================================================================== */
+
+/* The one place a band's ground animates. --theme-base is swapped by the
+   theme class on the wrapper; custom properties do not transition, but the
+   background-color they resolve to does. */
+.closer-wrap .band {
+  transition: background-color var(--dur-6) var(--ease-smooth);
+}
+
+/* The shelf takes the larger half. The bottles are the thing being chosen,
+   so they get the room; the offer card only has to hold a price and a
+   button, and it was never the reason anyone stops here. */
+.closer {
+  display: grid;
+  grid-template-columns: 0.78fr 1.22fr;
+  gap: var(--s-8);
+  align-items: center;
+}
+
+/* ------------------------------------------------------------------- copy */
+
+.closer__copy > * + * { margin-top: var(--s-4); }
+
+.closer__title { margin-top: var(--s-3); }
+.closer__line { display: block; }
+
+.closer__lede {
+  max-width: 28em;
+  font-weight: 600;
+}
+
+/* The offer sits on paper inside the coloured field, the same inversion the
+   product page's ritual card uses, so the two buy points read as one
+   pattern. Its accents recolour with the band. */
+.closer__offer {
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-6);
+  padding: var(--s-6);
+  border-radius: var(--radius-card);
+  background: var(--cream);
+  color: var(--ink);
+  max-width: 34em;
+}
+
+.closer__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+
+.closer__was { color: var(--muted); }
+
+.closer__save {
+  font-weight: 600;
+  color: var(--theme-deep);
+  transition: color var(--dur-6) var(--ease-smooth);
+}
+
+.closer__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  margin-top: var(--s-2);
+}
+
+.closer__more {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-target);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.closer__fine {
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--hairline);
+}
+
+/* ------------------------------------------------------------------ shelf */
+
+.closer__shelf {
+  position: relative;
+  align-self: end;
+}
+
+.shelf {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  /* The gap is between the labels, not between the bottles: the bottles
+     overflow their columns (see .shelf__pose) and set their own spacing. */
+  gap: var(--s-2);
+  /* Room above for the picked bottle to rise into, and for the float. */
+  padding-top: var(--s-8);
+}
+
+/* The shelf itself. A rule under the row, with the bottles' contact marks
+   sitting on it, is what turns three cut-outs into three objects on a
+   surface. */
+.shelf__edge {
+  height: 2px;
+  margin-top: calc(var(--s-3) * -1);
+  background: rgba(35, 31, 26, 0.32);
+  border-radius: var(--radius-pill);
+}
+
+.shelf__shot {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--s-1);
+  padding: 0 var(--s-2) var(--s-6);
+  text-align: center;
+  color: var(--ink);
+  border-radius: var(--radius-card);
+  /* Unpicked bottles recede. Ink at 0.62 on the base tint still clears 4.5
+     for the two labels under them, since ink on base starts at 6.79. */
+  opacity: 0.62;
+  transition: opacity var(--dur-4) var(--ease-smooth);
+}
+
+.shelf__shot:hover,
+.shelf__shot--on { opacity: 1; }
+
+/* The boxes overlap now, so being picked has to mean being in front as well
+   as being upright. Hover comes forward too, or pointing at a neighbour
+   would slide it under the one already standing up. */
+.shelf__shot:hover { z-index: 2; }
+.shelf__shot--on { z-index: 3; }
+
+/* The pose is the state machine. Rest is leaning and a little small; picked
+   is upright, larger and lifted. The spring on the way up is what makes the
+   pick feel like picking something up.
+
+   It is also wider than the column it sits in, and that is the single reason
+   large now. The cut-outs are square files holding a tall narrow object, so
+   most of each file is transparent margin: at 100% of a third of the row the
+   glass came out around 190px while its box was 255. At 134% the boxes
+   overlap by about a sixth and the glass does not, because what overlaps is
+   the empty part of the file. The column is minmax(0, 1fr), so the wide item
+   overflows rather than stretching the grid, and justify-self centres it, so
+   it grows evenly to both sides. */
+.shelf__pose {
+  /* Positioned so the contact mark below anchors to the bottle, not to the
+     button, whose bottom padding sits two labels lower. */
+  position: relative;
+  display: block;
+  width: 134%;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--lean, 0deg)) scale(0.9);
+  transition: transform var(--dur-6) var(--ease-bounce);
+}
+
+.shelf__shot:hover .shelf__pose {
+  transform: rotate(calc(var(--lean, 0deg) * 0.5)) scale(0.95) translateY(-3%);
+}
+
+.shelf__shot--on .shelf__pose,
+.shelf__shot--on:hover .shelf__pose {
+  transform: rotate(0deg) scale(1.12) translateY(-9%);
+}
+
+/* The contact mark. It shrinks and fades as the bottle lifts, which is the
+   whole reason it exists: without it the lift reads as a resize. */
+.shelf__pose::after {
+  content: "";
+  position: absolute;
+  /* Inset to where the glass actually is, not to the edges of the file.
+     The bottle occupies roughly the middle third of a square cut-out. */
+  left: 33%;
+  right: 33%;
+  bottom: -0.35rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background: rgba(35, 31, 26, 0.22);
+  transform-origin: center;
+  transition: transform var(--dur-6) var(--ease-smooth), opacity var(--dur-6) var(--ease-smooth);
+}
+
+.shelf__shot--on .shelf__pose::after {
+  transform: scale(0.7, 0.6);
+  opacity: 0.5;
+}
+
+.shelf__bottle {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  /* A slow float, each bottle out of phase with the next by way of --i, so
+     the shelf breathes without the three ever moving in step. `translate`
+     rather than `transform`, so it composes with the pose above instead of
+     fighting it. */
+  animation: shelf-float 4.6s var(--ease-smooth) infinite alternate;
+  animation-delay: calc(var(--i, 0) * -1.55s);
+}
+
+.shelf__shot .shot {
+  /* The packshot fallback: same footprint as a cut-out, so the row does not
+     jump if one product is missing its bottle. */
+  aspect-ratio: 1 / 1;
+  background: transparent;
+}
+
+@keyframes shelf-float {
+  from { translate: 0 0; }
+  to { translate: 0 -0.4rem; }
+}
+
+.shelf__concern {
+  margin-top: var(--s-2);
+  color: var(--theme-deep);
+  transition: color var(--dur-4) var(--ease-smooth);
+}
+
+.shelf__flavour { font-weight: 600; }
+
+/* ----------------------------------------------------------------- narrow */
+
+@media (max-width: 61.9375em) {
+  .closer {
+    grid-template-columns: 1fr;
+    gap: var(--s-6);
+  }
+  /* The bottles lead on a phone, as the pack shot does in the hero: the
+     thing you are choosing before the words about choosing it. */
+  .closer__shelf { order: -1; }
+  .closer__offer { max-width: none; }
+  /* A third of a phone is narrow enough that 134% would run the glass of one
+     bottle into the next. */
+  .shelf__pose { width: 116%; }
+  .shelf { padding-top: var(--s-7); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf__bottle { animation: none; }
+  .shelf__pose,
+  .shelf__pose::after,
+  .shelf__shot { transition: none; }
+  /* The picked bottle still stands up; that is a state, not motion. The
+     hover lean is dropped because it is only motion. */
+  .shelf__shot:hover .shelf__pose {
+    transform: rotate(var(--lean, 0deg)) scale(0.9);
+  }
+  .shelf__shot--on:hover .shelf__pose {
+    transform: rotate(0deg) scale(1.12) translateY(-9%);
+  }
+}
