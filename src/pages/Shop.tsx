@@ -11,7 +11,7 @@
    Native scroll only. No Lenis: this is a page where people buy.
    ========================================================================== */
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Band,
@@ -31,7 +31,6 @@ import {
   BAND_LAYOUT_MAX,
   byConcern,
   COMPARE_MAX,
-  comparisonGroups,
   comparisonRows,
   concernOf,
   fromPrice,
@@ -39,9 +38,10 @@ import {
   products,
   proposals,
 } from "../lib/catalog";
-import type { Product } from "../lib/catalog";
+import type { CompareCell, Product } from "../lib/catalog";
 import "./shop.css";
 import { ShopFilters, NoMatches, useShopQuery } from "../components/ShopFilters";
+import { clearFacets } from "../lib/shopFilters";
 import { defaultPack } from "../lib/cart";
 import { bottleFor, galleryFor, img } from "../lib/media";
 import type { AddFn } from "../lib/cart";
@@ -51,8 +51,10 @@ export default function Shop({ onAdd }: { onAdd: AddFn }) {
   useTitle("Shop");
   const useBands = products.length <= BAND_LAYOUT_MAX;
   const { query, results, set } = useShopQuery();
-  const clear = () =>
-    set({ ...query, concern: [], size: [], price: [], inStock: false });
+  /* Same helper the bar's own Clear uses. Spelling the reset out here as well
+     meant two lists of facet names that would drift the moment a fifth facet
+     landed. */
+  const clear = () => set(clearFacets(query));
 
   /* The filter bar drives both layouts. It used to exist only inside the grid,
      which meant the shop as it actually ships today, three products in bands,
@@ -89,7 +91,7 @@ export default function Shop({ onAdd }: { onAdd: AddFn }) {
 function ShopHero() {
   return (
     <div className="theme-volume">
-      <Band tone="pale" clip="bottom" overlap>
+      <Band tone="pale" clip="bottom">
         <p className="t-label t-muted">Shop</p>
         <h1 className="t-display-xl shop-hero__title">Three shots one ritual</h1>
         <p className="t-body shop-hero__lede">
@@ -256,7 +258,7 @@ function SkuBand({ product, onAdd }: { product: Product; onAdd: AddFn }) {
 
   return (
     <div ref={ref} id={`sku-${product.handle}`} className={`theme-${product.theme}`}>
-      <Band tone="base" clip="bottom" overlap>
+      <Band tone="base" clip="bottom">
         <div className="sku">
           <div className="sku__media">
             {/* A cut-out sits straight on the band, which is already the
@@ -402,51 +404,29 @@ function Grid({ onAdd, results }: { onAdd: AddFn; results: Product[] }) {
 
 /* ------------------------------------------------------------- compare ---- */
 
-/** A shared attribute grid across every product. No benchmark site in the
-    category offers one. Caps at COMPARE_MAX columns with a picker above that,
-    because a table wider than three columns stops being readable on a phone
-    however it scrolls. */
+/** The comparison.
+
+    Seven facts, three shots, one table, flat. It had groups and three weights
+    a moment ago; the design it is being built to reads them all at one weight
+    and leans on the rules and the stub column instead, which is quieter and
+    scans faster on a table this short.
+
+    No lens of its own. It had one for a moment, a row of concern pills above
+    the table, and it was the third control on this page pointed at the same
+    taxonomy: the filter bar at the top, the floating rail, and then this. The
+    rail already does the job of moving between shots and it does it without
+    occupying the space above the table. */
 function Compare() {
-  const needsPicker = products.length > COMPARE_MAX;
-  const [chosen, setChosen] = useState<string[]>(
-    products.slice(0, COMPARE_MAX).map((p) => p.handle)
-  );
-
-  const shown = needsPicker
-    ? products.filter((p) => chosen.includes(p.handle))
-    : products;
-
-  const toggle = (handle: string) =>
-    setChosen((cur) =>
-      cur.includes(handle)
-        ? cur.filter((h) => h !== handle)
-        : cur.length >= COMPARE_MAX
-          ? [...cur.slice(1), handle]
-          : [...cur, handle]
-    );
+  const shown = products.slice(0, COMPARE_MAX);
 
   return (
     <Band tone="cream" id="compare">
       <SectionHead
-        eyebrow="Side by side"
+        eyebrow="Compare"
         title="Which shot is yours"
-        lede="The same seven attributes for every shot, so the choice is a comparison rather than a guess."
+        lede={`${comparisonRows.length} facts, ${shown.length} shots, one table. Doses are the doses on the box. On a phone the table scrolls sideways and the first column stays put.`}
+        display
       />
-
-      {needsPicker && (
-        <div className="grid__facets cmp__picker">
-          {products.map((p) => (
-            <button
-              key={p.handle}
-              className={`chip${chosen.includes(p.handle) ? " chip--active" : ""}`}
-              aria-pressed={chosen.includes(p.handle)}
-              onClick={() => toggle(p.handle)}
-            >
-              {p.shortName}
-            </button>
-          ))}
-        </div>
-      )}
 
       <div className="cmp scroller">
         <table className="cmp__table">
@@ -456,69 +436,76 @@ function Compare() {
           <thead>
             <tr>
               <th scope="col" className="t-label t-muted cmp__stub">
-                Attribute
+                Fact
               </th>
               {shown.map((p) => (
                 <th key={p.handle} scope="col" className={`theme-${p.theme} cmp__head`}>
-                  <span className="cmp__swatch" aria-hidden />
-                  <span className="t-heading-s cmp__name">{p.shortName}</span>
-                  {/* The column's own price, so the header identifies the
-                      shot rather than only naming it. */}
-                  <span className="t-data t-muted cmp__from">
-                    from {money(fromPrice(p))}
+                  <span className="cmp__name">
+                    <span className="cmp__dot" aria-hidden />
+                    {p.shortName}
                   </span>
+                  <span className="t-body-s t-muted cmp__full">{p.name}</span>
                 </th>
               ))}
             </tr>
           </thead>
-
-          {/* One tbody per group. Valid HTML, and it lets each group carry its
-              own heading row and its own closing rule without a class on
-              every cell counting rows. */}
-          {comparisonGroups.map((group) => {
-            const rows = comparisonRows.filter((r) => r.group === group.id);
-            if (!rows.length) return null;
-            return (
-              <tbody key={group.id} className="cmp__group">
-                <tr className="cmp__grouphead">
-                  <th scope="colgroup" colSpan={shown.length + 1} className="t-label t-muted">
-                    {group.label}
-                  </th>
-                </tr>
-                {rows.map((row) => (
-                  <tr key={row.label} className={row.lead ? "cmp__row cmp__row--lead" : "cmp__row"}>
-                    <th scope="row" className="t-body-s cmp__stub">
-                      {row.label}
-                    </th>
-                    {shown.map((p) => (
-                      <td key={p.handle} className="cmp__val">
-                        {row.get(p)}
-                      </td>
-                    ))}
-                  </tr>
+          <tbody>
+            {comparisonRows.map((row) => (
+              <tr key={row.label}>
+                <th scope="row" className="cmp__stub cmp__label">
+                  {row.label}
+                </th>
+                {shown.map((p) => (
+                  <td key={p.handle} className="cmp__val">
+                    <Cell cell={row.get(p)} />
+                  </td>
                 ))}
-              </tbody>
-            );
-          })}
-
-          <tbody className="cmp__group">
-            <tr className="cmp__row cmp__row--buy">
-              <th scope="row" className="t-body-s cmp__stub">
-                Buy
-              </th>
-              {shown.map((p) => (
-                <td key={p.handle}>
-                  <Link to={`/products/${p.handle}`} className="t-body-s cmp__link">
-                    See {p.shortName}
-                  </Link>
-                </td>
-              ))}
-            </tr>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
     </Band>
   );
+}
+
+/** Typography for one cell. The weight always lands on the number, because
+    on a table of doses and prices the number is the thing being compared and
+    the word beside it is the label for it. */
+function Cell({ cell }: { cell: CompareCell }) {
+  switch (cell.kind) {
+    case "text":
+      return (
+        <>
+          <span className="cmp__strong">{cell.value}</span>
+          {cell.sub && <span className="cmp__sub t-body-s t-muted">{cell.sub}</span>}
+        </>
+      );
+    case "pairs":
+      return (
+        <>
+          {cell.items.map((it) => (
+            <span key={it.name} className="cmp__pair">
+              {it.name} <b>{it.dose}</b>
+            </span>
+          ))}
+        </>
+      );
+    case "servings":
+      return (
+        <span className="cmp__pair">
+          {cell.counts.map((n, i) => (
+            <Fragment key={n}>
+              {i > 0 && " or "}
+              <b>{n}</b>
+            </Fragment>
+          ))}{" "}
+          shots
+        </span>
+      );
+    case "money":
+      return <span className="t-data cmp__pair">{cell.value}</span>;
+  }
 }
 
 /* ------------------------------------------------------------- bundles ---- */

@@ -1,29 +1,39 @@
 /* ==========================================================================
-   Shop filter bar
+   Shop filter bar.
+
+   One row, one baseline. The old bar stacked a small-caps legend above every
+   group, which put four labels and four chip rows on two levels and left the
+   groups reading as four separate widgets with a ragged gap between them.
+   Here there is a single row of controls at one height, and the only legend
+   left is the one on the group that has no self-labelling trigger.
+
+   Motion is the transitions.dev menu-dropdown technique, re-expressed in this
+   repo's tokens: origin-aware scale from the trigger, a slower open than
+   close, and an is-open / is-closing pair so the panel animates out instead of
+   disappearing. The skill's own --dropdown-* variables are deliberately not
+   imported; there is one token file and it is styles/tokens.css.
    ========================================================================== */
 
 .filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--s-5);
   padding-block: var(--s-5);
   border-block: var(--hairline-width) solid var(--hairline);
 }
 
-.filters__groups {
+.filters__bar {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: var(--s-6);
+  gap: var(--s-3);
 }
 
-.filters__group {
-  border: 0;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: var(--s-2);
+.filters__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.filters__legend {
+  white-space: nowrap;
 }
 
 .filters__chips {
@@ -32,12 +42,242 @@
   gap: var(--s-2);
 }
 
-.filters__end {
+/* Separates the concern group from the tier-two controls. A hairline rather
+   than a gap, because a gap wide enough to read as a division is wide enough
+   to strand the right-hand controls. */
+.filters__rule {
+  width: var(--hairline-width);
+  align-self: stretch;
+  min-height: var(--hit-target);
+  background: var(--hairline);
+}
+
+/* Pushes the count, sort and clear to the end. margin-left rather than
+   justify-content on the parent, so the left group stays packed when the row
+   wraps. */
+.filters__gap {
+  margin-inline-start: auto;
+}
+
+/* ------------------------------------------------------------------- chips */
+
+/* A local chip rather than the global .chip: these carry a trailing count and
+   a disabled state, and the global chip has neither. */
+.filters__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--hit-target);
+  padding-inline: var(--s-4);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--hairline);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: var(--type-body-s);
+  white-space: nowrap;
+  transition: background var(--dur-2) var(--ease-smooth),
+    box-shadow var(--dur-2) var(--ease-smooth),
+    color var(--dur-2) var(--ease-smooth);
+}
+
+.filters__chip:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+.filters__chip:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.filters__chip--on {
+  background: var(--ink);
+  color: var(--cream);
+  box-shadow: none;
+}
+
+.filters__chip--on:hover {
+  box-shadow: none;
+}
+
+/* Dimmed, not hidden. The option still says what it is and that it is empty,
+   which is the information the shopper needs; removing it would make the row
+   change shape as filters are applied. */
+.filters__chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.filters__chip-count {
+  font-size: 0.8em;
+  opacity: 0.62;
+}
+
+/* ---------------------------------------------------------------- triggers */
+
+.filters__menu {
+  position: relative;
+}
+
+.filters__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--hit-target);
+  padding-inline: var(--s-4);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1.5px var(--hairline);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: var(--type-body-s);
+  white-space: nowrap;
+  transition: box-shadow var(--dur-2) var(--ease-smooth);
+}
+
+.filters__trigger:hover {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+.filters__trigger:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+/* A trigger with something selected inside it reads as active even though its
+   options are put away. Without this the bar can filter the grid while
+   looking untouched. */
+.filters__trigger--on {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.filters__badge {
+  display: grid;
+  place-items: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  padding-inline: 0.35em;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 0.75em;
+}
+
+.filters__caret {
+  transition: transform var(--dur-2) var(--ease-smooth);
+}
+
+.filters__trigger[aria-expanded="true"] .filters__caret {
+  transform: rotate(180deg);
+}
+
+/* ------------------------------------------------------------------ panel */
+
+/* The dropdown technique from transitions.dev: scale up from the trigger's
+   own corner on open, a shallower scale down on close, and two durations so
+   opening feels deliberate and closing feels immediate. Values are this
+   repo's: --dur-3 open, --dur-1 close, --ease-smooth both ways.
+
+   The scales stay literals rather than tokens. They are the geometry of this
+   one component, like the tilt in the step deck, not a system value. */
+.filters__panel {
+  position: absolute;
+  top: calc(100% + var(--s-2));
+  inset-inline-start: 0;
+  z-index: var(--z-menu);
+  display: grid;
+  gap: var(--s-1);
+  min-width: 15rem;
+  padding: var(--s-3);
+  border-radius: var(--radius-card);
+  background: var(--cream);
+  box-shadow: inset 0 0 0 1.5px var(--hairline);
+  transform-origin: top left;
+  transform: scale(0.97);
+  opacity: 0;
+  transition: transform var(--dur-3) var(--ease-smooth),
+    opacity var(--dur-3) var(--ease-smooth);
+  will-change: transform, opacity;
+}
+
+.filters__panel.is-open {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.filters__panel.is-closing {
+  transform: scale(0.99);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform var(--dur-1) var(--ease-smooth),
+    opacity var(--dur-1) var(--ease-smooth);
+}
+
+/* The head only earns its place on the sheet, where there is no trigger next
+   to the panel to close it again. */
+.filters__panel-head {
+  display: none;
+}
+
+/* ----------------------------------------------------------------- options */
+
+.filters__opt {
   display: flex;
   align-items: center;
-  gap: var(--s-4);
-  flex-wrap: wrap;
+  gap: var(--s-3);
+  min-height: var(--hit-target);
+  padding-inline: var(--s-3);
+  border-radius: var(--radius-chip);
+  cursor: pointer;
+  font-size: var(--type-body-s);
+  font-weight: 600;
+  transition: background var(--dur-1) var(--ease-smooth);
 }
+
+.filters__opt:hover {
+  background: var(--theme-soft);
+}
+
+/* The ring goes on the label, not the input: the checkbox is 1em in a 48px
+   row, so a ring around the box alone is easy to lose. :focus-within moves it
+   to the whole row. */
+.filters__opt:focus-within {
+  background: var(--theme-soft);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.filters__opt input {
+  width: 1.1em;
+  height: 1.1em;
+  accent-color: var(--ink);
+  flex: none;
+  cursor: pointer;
+}
+
+.filters__opt-label {
+  flex: 1;
+}
+
+.filters__opt-meta {
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+.filters__opt-count {
+  font-size: 0.85em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.filters__opt--dead {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.filters__opt--dead:hover {
+  background: transparent;
+}
+
+/* ------------------------------------------------------------ count + sort */
 
 .filters__count {
   margin: 0;
@@ -45,45 +285,213 @@
   white-space: nowrap;
 }
 
+/* The number pop-in, reduced to what a count needs: the digit re-enters on a
+   short blurred rise when the result total changes. React remounts the node
+   on a new key, which is what replays it. */
+.filters__count-n {
+  display: inline-block;
+  color: var(--ink);
+  animation: filters-count var(--dur-3) var(--ease-smooth);
+}
+
+@keyframes filters-count {
+  from {
+    opacity: 0;
+    transform: translateY(0.25em);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 .filters__sort {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
+  white-space: nowrap;
 }
 
-.filters__sort select {
+/* Deliberately still a native <select>. Four mutually exclusive text options,
+   two of them long enough to break a segmented control, and the platform
+   supplies the keyboard handling, the screen-reader announcement and the
+   phone's own picker for free. The problem with the old one was that it did
+   not look like it belonged in a row of pills, which is a stylesheet problem,
+   not a reason to hand-build a listbox. */
+.filters__select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.filters__select select {
+  appearance: none;
   min-height: var(--hit-target);
-  padding: 0 var(--s-4);
+  padding-inline: var(--s-4) calc(var(--s-4) + 1.1em);
   border: 0;
-  border-radius: var(--radius-chip);
-  background: var(--white);
+  border-radius: var(--radius-pill);
+  background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--hairline);
+  color: var(--ink);
   font-weight: 600;
+  font-size: var(--type-body-s);
   cursor: pointer;
+  transition: box-shadow var(--dur-2) var(--ease-smooth);
 }
 
-.filters__sort select:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--ink);
+.filters__select select:hover {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+.filters__select select:focus-visible {
   outline: none;
+  box-shadow: inset 0 0 0 2px var(--ink);
 }
 
+/* The caret is the same glyph the facet triggers use, so the two controls read
+   as the same kind of thing. pointer-events off, or it eats the click that
+   should open the picker. */
+.filters__select svg {
+  position: absolute;
+  inset-inline-end: var(--s-3);
+  pointer-events: none;
+}
+
+.filters__clear {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--hit-target);
+  padding-inline: var(--s-3);
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  font-size: var(--type-body-s);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color var(--dur-2) var(--ease-smooth),
+    background var(--dur-2) var(--ease-smooth);
+}
+
+.filters__clear:hover {
+  color: var(--ink);
+  background: var(--theme-soft);
+}
+
+.filters__clear:focus-visible {
+  outline: none;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+/* ------------------------------------------------------------------- empty */
+
+/* An empty result is a screen, not a null branch, so it gets real height and
+   sits centred rather than floating as a short block under the bar. */
 .filters__none {
   display: grid;
-  justify-items: start;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
   gap: var(--s-3);
+  min-height: 22rem;
   padding-block: var(--s-8);
 }
 
+.filters__none p {
+  max-width: 30rem;
+}
+
+/* -------------------------------------------------------------- the sheet */
+
 @media (max-width: 767px) {
-  .filters {
-    align-items: start;
+  .filters__bar {
+    gap: var(--s-2);
   }
-  .filters__groups {
-    gap: var(--s-4);
+
+  /* The concern group takes its own line: three chips plus a legend is
+     already a full row on a phone. */
+  .filters__lead {
     width: 100%;
+    flex-wrap: wrap;
   }
-  .filters__end {
+
+  .filters__rule {
+    display: none;
+  }
+
+  .filters__gap {
+    margin-inline-start: 0;
+  }
+
+  .filters__count {
     width: 100%;
+    order: 9;
+  }
+
+  /* A popover anchored inside a wrapped row has nowhere good to go, so below
+     this width it becomes a bottom sheet: full width, at the bottom edge,
+     under a scrim. The list is hidden while it is open, which is the right
+     trade on a screen this size and the wrong one on a desktop. */
+  .filters__panel {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: var(--z-drawer);
+    min-width: 0;
+    padding: var(--s-4) var(--s-5) var(--s-6);
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    /* A hairline, not a blur. tokens.css: depth comes from bands overlapping,
+       and the only box-shadow in the system is the focus ring. The cart drawer
+       separates itself the same way. */
+    box-shadow: inset 0 0 0 1.5px var(--hairline);
+    transform-origin: bottom center;
+    transform: translateY(100%);
+  }
+
+  .filters__panel.is-open {
+    transform: translateY(0);
+  }
+
+  .filters__panel.is-closing {
+    transform: translateY(100%);
+  }
+
+  .filters__panel-head {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
+    padding-bottom: var(--s-2);
+    margin-bottom: var(--s-2);
+    border-bottom: var(--hairline-width) solid var(--hairline);
+  }
+
+  .filters__panel-close {
+    display: grid;
+    place-items: center;
+    width: var(--hit-target);
+    height: var(--hit-target);
+    margin-inline-end: calc(var(--s-3) * -1);
+    border-radius: var(--radius-pill);
+    color: var(--ink);
+  }
+
+  .filters__opt {
+    min-height: 3.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filters__chip,
+  .filters__trigger,
+  .filters__caret,
+  .filters__panel,
+  .filters__opt,
+  .filters__clear,
+  .filters__select select {
+    transition: none;
+  }
+  .filters__count-n {
+    animation: none;
   }
 }

@@ -43,7 +43,6 @@ type BandTone = "cream" | "white" | "ink" | "base" | "pale" | "soft";
 export function Band({
   tone = "cream",
   clip = "bottom",
-  overlap = false,
   theme,
   id,
   children,
@@ -51,7 +50,6 @@ export function Band({
 }: {
   tone?: BandTone;
   clip?: "bottom" | "all" | "none";
-  overlap?: boolean;
   theme?: string;
   id?: string;
   children: ReactNode;
@@ -61,7 +59,6 @@ export function Band({
   const cls = [
     "band",
     clip === "all" ? "band--outer" : clip === "none" ? "band--flat" : "",
-    overlap ? "band--overlap" : "",
     `band--${tone}`,
     theme ? `theme-${theme}` : "",
   ]
@@ -423,10 +420,15 @@ export function TrustRow() {
     folded away. */
 export function Disclose({
   summary,
+  meta,
   children,
   open: initial = false,
 }: {
   summary: string;
+  /** A short hint at what is behind the row: a count, a headline value. A
+      disclosure control has to set an accurate expectation of what it opens,
+      and a column of bare titles sets the same expectation four times. */
+  meta?: string;
   children: ReactNode;
   open?: boolean;
 }) {
@@ -441,7 +443,11 @@ export function Disclose({
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="t-heading-s">{summary}</span>
+        {/* The size of a disclosure trigger is a stylesheet decision, not a
+            component one. It used to be pinned to t-heading-s here, which put
+            every row within one step of the section title above it. */}
+        <span className="disc__summary">{summary}</span>
+        {meta && <span className="disc__meta t-body-s">{meta}</span>}
         <CaretIcon className="disc__icon" />
       </button>
       <div className="disc__panel" id={panelId} inert={!open}>

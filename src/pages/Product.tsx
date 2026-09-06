@@ -26,12 +26,14 @@ import {
   Shot,
   Stars,
   TrustRow,
+  reduced,
 } from "../components/primitives";
 import { StickyBuyBar } from "../components/Chrome";
 import { PathRule } from "../components/Logo";
 import {
   BRAND,
   byHandle,
+  COMMERCE,
   concernOf,
   MECHANISM_BEATS,
   money,
@@ -46,9 +48,12 @@ import "./pdp.css";
 import type { AddFn } from "../lib/cart";
 import { IngredientRail } from "../components/IngredientRail";
 import { StepDeck } from "../components/HowItWorks";
+import { MarkGlyph } from "../components/Mark";
 import type { DeckStep } from "../components/HowItWorks";
-import { artForIngredient, galleryFor, stillFor } from "../lib/media";
+import { artForIngredient, bottleFor, galleryFor, img, stillFor } from "../lib/media";
 import { useTitle } from "../lib/useTitle";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 export default function Product({ onAdd }: { onAdd: AddFn }) {
   const { handle } = useParams();
@@ -143,7 +148,7 @@ function Hero({
   const gallery = galleryFor(product.handle, product.images);
 
   return (
-    <Band tone="pale" clip="bottom" overlap>
+    <Band tone="pale" clip="bottom">
       <div className="pdp">
         <div className="pdp__gallery">
           {/* The gallery now leads with the cut-out render, then the carton
@@ -287,7 +292,7 @@ function Audiences({ product }: { product: P }) {
 
   return (
     <div className="theme-inherit">
-      <Band tone="soft" clip="bottom" overlap>
+      <Band tone="soft" clip="bottom">
         <SectionHead
           eyebrow={`Who ${product.shortName} is for`}
           title="Two reasons to drink it"
@@ -444,7 +449,10 @@ function Ingredients({ product }: { product: P }) {
       />
 
       <div className="discs">
-        <Disclose summary={`What ${product.name.replace("DASH OF ", "Dash of ")} is`} open>
+        {/* shortName, not a find and replace on the full name: that produced
+            "Dash of BURN", which is neither the brand's casing nor the lede's
+            own wording two lines above it. */}
+        <Disclose summary={`What ${product.shortName} is`} meta={product.descriptor} open>
           {product.whatItIs.map((t) => (
             <p key={t.slice(0, 20)} className="t-body">
               {t}
@@ -452,7 +460,10 @@ function Ingredients({ product }: { product: P }) {
           ))}
         </Disclose>
 
-        <Disclose summary="Ingredients per 60 ml serving">
+        <Disclose
+          summary="Ingredients per 60 ml serving"
+          meta={`${product.actives.length} actives`}
+        >
           <p className="t-body-s t-muted">{product.ingredientsLede}</p>
           <ul className="ing">
             {product.actives.map((a) => (
@@ -465,7 +476,7 @@ function Ingredients({ product }: { product: P }) {
           <p className="t-body-s t-muted">{product.ingredientsNote}</p>
         </Disclose>
 
-        <Disclose summary="How to use">
+        <Disclose summary="How to use" meta={`${product.howToUse.length} steps`}>
           <ol className="how">
             {product.howToUse.map((t, i) => (
               <li key={t} className="t-body">
@@ -476,7 +487,7 @@ function Ingredients({ product }: { product: P }) {
           </ol>
         </Disclose>
 
-        <Disclose summary="Shipping, returns and payment">
+        <Disclose summary="Shipping, returns and payment" meta={COMMERCE.shipping.text}>
           <TrustRow />
           <p className="t-body-s t-muted">
             Questions: {BRAND.footer.helpful[2]} at support@drinkdash.in.
@@ -494,7 +505,7 @@ function Ingredients({ product }: { product: P }) {
     those numbers was the worst error of the first pass. */
 function Research({ product }: { product: P }) {
   return (
-    <Band tone="ink" clip="bottom" overlap id="research">
+    <Band tone="ink" clip="bottom" id="research">
       <SectionHead
         eyebrow="Backed by ingredient research"
         title={`${product.references.length} papers behind this formula`}
@@ -615,6 +626,23 @@ function Reviews({ product }: { product: P }) {
     30 day ritual is the brand's own recommendation, so a pack that does not
     cover 30 days is shown against it. No badge, no urgency, just the two
     numbers next to each other and a link back to the packs. */
+/* The closing CTA.
+
+   Two columns. The left one is the whole argument and the whole action in one
+   reading order: kicker, title, one line of description, the buy card. The
+   right one is the bottle, and nothing else. The numbered ritual steps that
+   used to sit between title and card are gone; the product page already
+   carries HOW TO USE, and here they were three lines between the reader and
+   the button.
+
+   The band takes its height from the left column. Nothing in it has a fixed
+   or minimum height, so a longer pack name or a second fine-print line grows
+   the section rather than overflowing it.
+
+   Honest state, from the vault rules: the fine print reads COMMERCE rather
+   than a written sentence, so the returns window cannot drift from the policy
+   clause that sets it. The description is the brand's own statement with its
+   last clause cut, not a rewrite. */
 function Ritual({
   product,
   pack,
@@ -626,88 +654,127 @@ function Ritual({
 }) {
   const tier = tierFor(pack.servings);
   const covers = pack.servings >= RITUAL_NOTE.days;
+  const bottle = bottleFor(product.handle);
+  const wrap = useRef<HTMLDivElement>(null);
+
+  /* The bottle settles from a lift and a lean into its resting tilt as the
+     band scrolls in. The resting tilt is a layout choice and stays under
+     reduced motion; only the travel is dropped. */
+  useGSAP(
+    () => {
+      if (reduced() || !wrap.current) return;
+      const el = wrap.current.querySelector(".rit__bottle");
+      if (!el) return;
+      gsap.fromTo(
+        el,
+        { yPercent: 10, rotate: -11 },
+        {
+          yPercent: 0,
+          rotate: -5,
+          ease: "none",
+          scrollTrigger: {
+            trigger: wrap.current,
+            start: "top 85%",
+            end: "center 55%",
+            scrub: 0.6,
+            invalidateOnRefresh: true,
+          },
+        }
+      );
+    },
+    { scope: wrap }
+  );
 
   return (
-    <Band tone="base" clip="bottom" overlap id="ritual">
-      <div className="rit">
+    <Band tone="base" clip="bottom" id="ritual">
+      <div className="rit" ref={wrap}>
         <div className="rit__copy">
           <p className="t-label">{BRAND.ritualSection.kicker}</p>
           <h2 className="t-display-xl rit__title">{product.ritual.title}</h2>
+          <p className="t-body rit__desc">{BRAND.statementShort}</p>
 
-          {/* The three ritual lines were three stacked paragraphs at the same
-              weight. They are a sequence, so they are numbered like one. */}
-          <ol className="rit__steps">
-            {product.ritual.lines.map((l, i) => (
-              <li key={l} className="rit__step">
-                <span className="t-data rit__step-n">
-                  {String(i + 1).padStart(2, "0")}
+          <aside className="rit__cta" aria-label={`Buy ${product.name}`}>
+            <div className="rit__cta-row">
+              <div>
+                <p className="t-label t-muted">Start the ritual</p>
+                <p className="t-heading-s rit__cta-pack">
+                  {tier?.name ?? `${pack.servings} Servings`}
+                </p>
+              </div>
+              <p className="rit__cta-price">
+                <span className="t-heading-m">{money(pack.price)}</span>
+                <span className="t-data t-muted rit__cta-unit">
+                  {money(Math.round(perServing(pack)))}/shot
                 </span>
-                <span className="t-heading-s rit__step-t">{l}</span>
-              </li>
-            ))}
-          </ol>
+              </p>
+            </div>
 
-          <ul className="rit__std">
-            {BRAND.badges.map((b) => (
-              <li key={b} className="t-label">
-                {b}
+            <div className="rit__cta-days">
+              <div className="rit__cta-bar" aria-hidden="true">
+                <span
+                  style={{
+                    width: `${Math.min(100, (pack.servings / RITUAL_NOTE.days) * 100)}%`,
+                  }}
+                />
+              </div>
+              <p className="t-body-s rit__cta-note">
+                {covers ? (
+                  <>
+                    Covers the full <Data>{RITUAL_NOTE.days}</Data> day ritual the
+                    brand recommends.
+                  </>
+                ) : (
+                  <>
+                    <Data>{pack.servings}</Data> of{" "}
+                    <Data>{RITUAL_NOTE.days}</Data> days.{" "}
+                    <a href="#packs" className="rit__cta-link">
+                      Compare the packs
+                    </a>
+                  </>
+                )}
+              </p>
+            </div>
+
+            <Button variant="primary" full onClick={onAdd} disabled={!pack.available}>
+              {pack.available ? "Add to cart" : "Out of stock"}
+            </Button>
+
+            <ul className="rit__cta-fine t-body-s">
+              <li>
+                {COMMERCE.shipping.text} · {COMMERCE.taxNote.text}
               </li>
-            ))}
-          </ul>
+              <li>{COMMERCE.dispatch.text}</li>
+              <li>
+                {COMMERCE.returns.text} · {COMMERCE.cod.text}
+              </li>
+            </ul>
+          </aside>
         </div>
 
-        <aside className="rit__cta" aria-label={`Buy ${product.name}`}>
-          <p className="t-label t-muted">Start the ritual</p>
-
-          <p className="t-heading-s rit__cta-pack">
-            {tier?.name ?? `${pack.servings} Servings`}
-          </p>
-
-          <p className="rit__cta-price">
-            <span className="t-heading-m">{money(pack.price)}</span>
-            <span className="t-data t-muted rit__cta-unit">
-              {money(Math.round(perServing(pack)))}/shot
-            </span>
-          </p>
-
-          <div className="rit__cta-days">
-            <div className="rit__cta-bar" aria-hidden="true">
-              <span
-                style={{
-                  width: `${Math.min(100, (pack.servings / RITUAL_NOTE.days) * 100)}%`,
-                }}
-              />
-            </div>
-            <p className="t-body-s rit__cta-note">
-              {covers ? (
-                <>
-                  Covers the full <Data>{RITUAL_NOTE.days}</Data> day ritual the
-                  brand recommends.
-                </>
-              ) : (
-                <>
-                  <Data>{pack.servings}</Data> of{" "}
-                  <Data>{RITUAL_NOTE.days}</Data> days.{" "}
-                  <a href="#packs" className="rit__cta-link">
-                    Compare the packs
-                  </a>
-                </>
-              )}
-            </p>
+        {bottle && (
+          <div className="rit__stage">
+            <img
+              className="rit__bottle"
+              {...img(bottle)}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
-
-          <Button variant="primary" full onClick={onAdd} disabled={!pack.available}>
-            {pack.available ? "Add to cart" : "Out of stock"}
-          </Button>
-
-          <p className="t-body-s t-muted rit__cta-fine">
-            Free shipping. Dispatches in 24 to 48 hours. Write to us within{" "}
-            <Data>{7}</Data> days of delivery if it is not right for you.
-          </p>
-        </aside>
+        )}
       </div>
 
-      <blockquote className="t-body rit__statement">{BRAND.statement}</blockquote>
+      {/* One hairline row across the band, the mark glyph doing the
+          separating. */}
+      <ul className="rit__std" aria-label="Standards">
+        {BRAND.badges.map((b, i) => (
+          <li key={b} className="t-label">
+            {i > 0 && <MarkGlyph size="0.7em" className="rit__std-mark" />}
+            {b}
+          </li>
+        ))}
+      </ul>
     </Band>
   );
 }

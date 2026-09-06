@@ -62,7 +62,7 @@ export default function Diary() {
 
   return (
     <div className={`theme-${article.theme}`}>
-      <Band tone="soft" clip="bottom" overlap>
+      <Band tone="soft" clip="bottom">
         <div className="art-top">
         <header className="art-hero">
           <p className="t-label t-muted">

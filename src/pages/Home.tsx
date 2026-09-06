@@ -7,7 +7,7 @@
    disclosure, the strongest line stays visible.
    ========================================================================== */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -37,6 +37,7 @@ import {
   products,
   proposals,
   RITUAL_NOTE,
+  tierFor,
 } from "../lib/catalog";
 import { FloodTypeCard } from "../motion/floodtype/FloodTypeCard";
 import { StampTypeCard } from "../motion/stamptype/StampTypeCard";
@@ -44,6 +45,7 @@ import "./home.css";
 import { defaultPack } from "../lib/cart";
 import type { AddFn } from "../lib/cart";
 import { HowItWorks } from "../components/HowItWorks";
+import { Closer } from "../components/Closer";
 import { MarkTexture } from "../components/Mark";
 import { bottleFor, img } from "../lib/media";
 
@@ -75,6 +77,9 @@ export default function Home({ onAdd }: { onAdd: AddFn }) {
       <Ritual />
       <Promises />
       <Ladder />
+      {/* The conversion point. After the maths, before the reading: see the
+          note at the top of components/Closer.tsx for why it sits here. */}
+      <Closer onAdd={onAdd} />
       <Diaries />
     </>
   );
@@ -105,7 +110,7 @@ function Hero() {
 
   return (
     <div ref={wrap} className="theme-glow">
-      <Band tone="base" clip="bottom" overlap wide>
+      <Band tone="base" clip="bottom" wide>
         {/* The mark, tiled. The cartons print the same device, so the hero
             ground carries the packaging texture rather than a flat fill. Low
             enough that ink on coral keeps its 6.79 against the lighter of the
@@ -184,11 +189,11 @@ function LineUp({ onAdd }: { onAdd: AddFn }) {
                   <Link to={`/products/${p.handle}`}>{p.name}</Link>
                 </h3>
 
-                {/* Proof on the card: the hero active with its dose, and the
-                    rating. No benchmark site does this. */}
-                <p className="pcard__hero t-data">
-                  {p.formula[0].name} {p.formula[0].dose}
-                </p>
+                {/* Proof on the card: the rating and the count. The hero
+                    active and its dose used to sit here too, which put a
+                    dosed ingredient above the line that says what the shot is
+                    for. The dose belongs on the product page and in the
+                    comparison, where there is something to compare it to. */}
                 <p className="t-body-s pcard__line">{p.lineUpLine}</p>
 
                 <div className="pcard__meta">
@@ -262,7 +267,7 @@ function Vocabulary() {
 
 function Standards() {
   return (
-    <Band tone="soft" clip="bottom" overlap>
+    <Band tone="soft" clip="bottom">
       <div className="theme-volume">
         <Reveal selector=".std" stagger={0.05}>
           <ul className="stds">
@@ -337,7 +342,7 @@ function Ritual() {
 
   return (
     <div ref={ref} className="theme-glow">
-      <Band tone="ink" clip="bottom" overlap wide>
+      <Band tone="ink" clip="bottom" wide>
         <div className="shell ritual">
           <div className="ritual__copy">
             <p className="t-label">{BRAND.ritualSection.kicker}</p>
@@ -395,10 +400,106 @@ function Promises() {
 
 /* ------------------------------------------------------------- 7. ladder -- */
 
+/* Seconds. A mark lights in MARK_LIT and the next starts MARK_STEP later, so
+   a row of n marks runs for MARK_STEP * (n - 1) + MARK_LIT. The bottle is
+   given that same figure so the two stay locked together. */
+const MARK_LIT = 0.12;
+const MARK_STEP = 0.06;
+
 /** The pack arithmetic, reconciled against the brand's own 30 day ritual
-    recommendation. No competitor connects these two numbers. */
+    recommendation. No competitor connects these two numbers.
+
+    It was three cards in a grid, each with its own progress bar filling its
+    own card. That is three charts, not one comparison: every bar ran the full
+    width of its box, so a pack covering a fifth of the ritual drew the same
+    length of track as a pack covering all of it, and the only thing carrying
+    the difference was the fill percentage inside three separate frames. The
+    eye cannot compare lengths that do not share a baseline.
+
+    So there is one baseline now. Thirty days, drawn once as thirty marks, and
+    each pack laid along it. A six pack lights six and leaves twenty four dark
+    against the same finish line the thirty pack reaches. The shortfall stops
+    being a sentence and becomes a gap you can count.
+
+    The marks fill on scroll, scrubbed, one row running into the next, because
+    the argument is sequential: this pack gets this far, this one further,
+    this one all the way. The fill is the argument being made at reading pace
+    rather than a flourish laid over it.
+
+    Resting state is lit. The tween is a fromTo out of scaleX 0, so if the
+    script never runs the marks are already in their final positions and the
+    section is a correct static chart. */
 function Ladder() {
   const glow = products[0];
+  const cap = bottleFor(glow.handle);
+  const days = RITUAL_NOTE.days;
+  const wrap = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const root = wrap.current;
+      /* Under reduced motion the chart is simply drawn. It is information, so
+         it is never withheld pending a scroll that may not happen. */
+      if (!root || reduced()) return;
+      const rows = gsap.utils.toArray<HTMLElement>(".rung", root);
+      if (!rows.length) return;
+
+      /* One ScrollTrigger, on the timeline. Per row triggers on the same
+         range would fill all three at once and lose the sequence. */
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: root,
+          start: "top 80%",
+          end: "bottom 72%",
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      rows.forEach((row) => {
+        const marks = row.querySelectorAll<HTMLElement>(".pip__ink");
+        if (!marks.length) return;
+
+        tl.fromTo(
+          marks,
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            /* Linear, so scroll distance and fill are the same measure. A
+               curve here would make the count speed up and slow down against
+               a thumb moving evenly. */
+            ease: "none",
+            duration: MARK_LIT,
+            stagger: MARK_STEP,
+          },
+          /* Rows overlap slightly, so the sequence reads as one run rather
+             than three waits. */
+          ">-0.5"
+        );
+
+        /* The bottle rides the leading edge, so it arrives at the pack's last
+           day exactly as the last mark lights. Same span as the stagger above
+           and started at the same instant, or it drifts off the front of its
+           own row. */
+        const bottle = row.querySelector<HTMLElement>(".rung__bottle");
+        const pips = row.querySelectorAll<HTMLElement>(".pip");
+        const last = Number(row.dataset.servings) - 1;
+        if (!bottle || !pips[last] || !pips[0]) return;
+
+        const span = MARK_STEP * Math.max(0, marks.length - 1) + MARK_LIT;
+        tl.fromTo(
+          bottle,
+          /* Measured on refresh rather than captured once, so a resize does
+             not leave the bottle travelling yesterday's distance. */
+          { x: () => pips[0].offsetLeft - pips[last].offsetLeft },
+          { x: 0, ease: "none", duration: span },
+          "<"
+        );
+      });
+    },
+    { scope: wrap }
+  );
+
   return (
     <Band tone="white" id="ladder">
       <SectionHead
@@ -407,29 +508,92 @@ function Ladder() {
         lede={RITUAL_NOTE.text}
       />
 
-      <Reveal selector=".rung" stagger={0.07}>
-        <div className="rungs">
+      <div
+        className="ladder"
+        ref={wrap}
+        style={{ "--days": days } as CSSProperties}
+      >
+        {/* The scale, once, above the three tracks it measures. */}
+        <div className="ladder__scale t-label t-muted">
+          <span className="ladder__ends">
+            <span>Day 1</span>
+            <span>Day {days}</span>
+          </span>
+        </div>
+
+        <ol className="ladder__rows">
           {glow.packs.map((p) => {
-            const covers = p.servings >= RITUAL_NOTE.days;
+            const short = Math.max(0, days - p.servings);
+            const covers = short === 0;
             const unit = Math.round(p.price / p.servings);
             return (
-              <div key={p.sku} className={`rung${covers ? " rung--covers" : ""}`}>
-                <p className="t-label t-muted">
-                  {p.servings === 6 ? "Trial Pack" : p.servings === 12 ? "Starter Pack" : "Recommended Pack"}
-                </p>
-                <p className="t-heading-l rung__days">
-                  <span className="t-data">{p.servings}</span>
-                </p>
-                <p className="t-body-s">days of the {RITUAL_NOTE.days} recommended</p>
-                <div className="rung__bar" aria-hidden="true">
-                  <span style={{ width: `${Math.min(100, (p.servings / RITUAL_NOTE.days) * 100)}%` }} />
+              <li
+                key={p.sku}
+                className={`rung${covers ? " rung--covers" : ""}`}
+                data-servings={p.servings}
+              >
+                <div className="rung__id">
+                  <p className="t-label rung__tier">
+                    {tierFor(p.servings)?.name ?? `${p.servings} servings`}
+                  </p>
+                  <p className="rung__count">
+                    <span className="t-data">{p.servings}</span> shots
+                  </p>
                 </div>
-                <p className="t-data rung__unit">{money(unit)} a shot</p>
-              </div>
+
+                {/* The chart is a picture of the sentence beside it, so it is
+                    hidden from the tree rather than read out as thirty
+                    unlabelled marks. */}
+                {/* Thirty cells always, so the geometry of the track never
+                    changes between rows. The pack's last day is drawn as the
+                    bottle instead of a mark, which is what the bottle is: the
+                    shot you take on that day. */}
+                <div className="rung__track" aria-hidden="true">
+                  {/* Every cell states its own column. Auto placement will not
+                      put two items in one cell, so with the bottle sitting on
+                      day N the mark that wanted that cell was pushed along and
+                      the thirtieth fell onto a second row: an orphan under day
+                      one, a track twice as tall as it needed to be, and a
+                      travel distance measured to the wrong element. Placed
+                      explicitly, the bottle and its day share a cell. */}
+                  {Array.from({ length: days }, (_, i) => (
+                    <span
+                      key={i}
+                      className="pip"
+                      style={{ gridColumn: i + 1 } as CSSProperties}
+                    >
+                      {i < p.servings - 1 && <span className="pip__ink" />}
+                    </span>
+                  ))}
+                  {cap && (
+                    <img
+                      className="rung__bottle"
+                      {...img(cap)}
+                      alt=""
+                      style={{ "--n": p.servings } as CSSProperties}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                </div>
+
+                <p className="rung__verdict">
+                  {covers ? `Covers all ${days}` : `${short} days short`}
+                </p>
+
+                {/* Two lines, not one. "Rs 130 a shot" in the tabular face
+                    broke across the column and left the symbol stranded on a
+                    line of its own. The figure is the thing being compared;
+                    the unit is a label for it. */}
+                <p className="rung__unit">
+                  <span className="t-data rung__price">{money(unit)}</span>
+                  <span className="t-body-s rung__per">a shot</span>
+                </p>
+              </li>
             );
           })}
-        </div>
-      </Reveal>
+        </ol>
+      </div>
 
       <p className="t-body t-muted ladder__note">
         The Trial Pack and the Starter Pack are for getting started and for

@@ -50,7 +50,7 @@ export default function Diaries() {
 
   return (
     <div className="theme-glow">
-      <Band tone="base" clip="bottom" overlap>
+      <Band tone="base" clip="bottom">
         <header className="dia-hero">
           <p className="t-label">Journal</p>
           <SplitHeading text="The Dash Diaries" className="t-display-xl" as="h1" />

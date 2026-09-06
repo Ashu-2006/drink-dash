@@ -149,7 +149,7 @@ export default function Playground({ onAdd }: { onAdd: AddFn }) {
           motion === "reduced" ? " pg__stage--still" : ""
         }`}
       >
-        <Band tone="base" clip="bottom" overlap>
+        <Band tone="base" clip="bottom">
           <div className="pgb" key={`${variant.id}-${product.handle}`}>
             <BuyMedia product={product} />
             {variant.render({

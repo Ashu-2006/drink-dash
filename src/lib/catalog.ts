@@ -263,6 +263,11 @@ export const BRAND = {
   /** Appears at the foot of every product page. */
   statement:
     "Built with purpose, not promises. Each DASH formulation is developed through structured R&D, ingredient screening, and stability testing, ensuring every 60ml shot delivers consistent quality, batch after batch.",
+  /* The same sentence with its final clause cut, for places that need one
+     line rather than a paragraph. A cut, not a rewrite: every word is the
+     brand's. */
+  statementShort:
+    "Built with purpose, not promises. Each DASH formulation is developed through structured R&D, ingredient screening, and stability testing.",
   diaries: {
     title: "THE DASH DIARIES",
     posts: [
@@ -764,47 +769,74 @@ export const activeConcerns = () =>
 
 /** Rows for the comparison table. Values are resolved per product at render
     time so a new product needs no change here. */
-/* Grouped, because seven attributes set at one weight is a list, not a
-   comparison: the eye has nowhere to land and every row argues as loudly as
-   every other. Three groups answer three different questions, and the one row
-   carrying the brand's strongest asset, a named dose, is marked so it can be
-   set heavier than the rows around it. */
-export type CompareGroup = "fit" | "formula" | "proof";
+/* Seven facts, one weight each, no groups.
 
-export const comparisonGroups: { id: CompareGroup; label: string }[] = [
-  { id: "fit", label: "What it is for" },
-  { id: "formula", label: "What is in it" },
-  { id: "proof", label: "What it is worth" },
-];
+   A cell is not always a string. "Best for" is a value with a qualifier under
+   it, the two active rows are name and dose pairs so the dose can be set
+   heavier than the name, and servings is a set of numbers with connectors
+   between them. Returning a shape rather than a string keeps the derivation
+   here, next to the data it reads, and leaves the table to do the typography.
+
+   The hero is formula[0], which is the order the brand's own formula section
+   is written in, and the supporting actives are the rest of that list in the
+   same order. Neither is re-sorted here. */
+export type CompareCell =
+  | { kind: "text"; value: string; sub?: string }
+  | { kind: "pairs"; items: { name: string; dose: string }[] }
+  | { kind: "servings"; counts: number[] }
+  | { kind: "money"; value: string };
 
 export const comparisonRows: {
   label: string;
-  group: CompareGroup;
-  /** Set heavier than its neighbours. One per table, at most. */
-  lead?: true;
-  get: (p: Product) => string;
+  get: (p: Product) => CompareCell;
 }[] = [
-  { label: "Best for", group: "fit", get: (p) => concernOf(p)?.label ?? "" },
-  { label: "Descriptor", group: "fit", get: (p) => p.descriptor },
-  { label: "Flavour", group: "fit", get: (p) => p.flavour },
   {
-    label: "Hero active",
-    group: "formula",
-    lead: true,
-    get: (p) => `${p.formula[0].name} ${p.formula[0].dose ?? ""}`.trim(),
-  },
-  { label: "Actives", group: "formula", get: (p) => String(p.actives.length) },
-  {
-    label: "Reviews",
-    group: "proof",
-    get: (p) => `${p.reviewCount} at ${p.rating} stars`,
+    label: "Best for",
+    get: (p) => ({
+      kind: "text",
+      value: concernOf(p)?.label ?? "",
+      sub: p.descriptor,
+    }),
   },
   {
-    label: "Price per shot, Recommended Pack",
-    group: "proof",
+    label: "Hero active and dose",
+    get: (p) => ({
+      kind: "pairs",
+      items: p.formula.slice(0, 1).map((f) => ({
+        name: f.name,
+        dose: f.dose ?? "",
+      })),
+    }),
+  },
+  {
+    label: "Supporting actives",
+    get: (p) => ({
+      kind: "pairs",
+      items: p.formula.slice(1).map((f) => ({ name: f.name, dose: f.dose ?? "" })),
+    }),
+  },
+  { label: "Flavour", get: (p) => ({ kind: "text", value: p.flavour }) },
+  {
+    label: "Servings",
+    get: (p) => ({
+      kind: "servings",
+      counts: p.packs.map((k) => k.servings),
+    }),
+  },
+  {
+    label: "Price per shot, 30 pack",
     get: (p) => {
       const k = p.packs.find((x) => x.servings === 30) ?? p.packs[0];
-      return money(Math.round(perServing(k)));
+      return { kind: "money", value: money(Math.round(perServing(k))) };
     },
+  },
+  {
+    /* The brand sets one horizon for all three shots and states it in the
+       Recommended Pack footnote. It is the same in every column because that
+       is what the site says; a per shot figure would be an invented claim
+       about how fast a formulation works, which is the one thing the
+       catalogue is not allowed to carry. */
+    label: "Judge results at",
+    get: () => ({ kind: "text", value: `Day ${RITUAL_NOTE.days}` }),
   },
 ];

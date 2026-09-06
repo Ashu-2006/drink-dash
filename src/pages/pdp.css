@@ -238,7 +238,15 @@
 
 /* --------------------------------------------------------- disclosures ---- */
 
-.discs { max-width: 52em; border-top: 1px solid var(--hairline); }
+/* Held to the head's own measure. At 52em the rows ran ten ems past the
+   heading above them and the caret sat a long way from the title it belonged
+   to. The top margin is the one every other band on this page already has;
+   this list had none, so it butted straight against the lede. */
+.discs {
+  max-width: 42em;
+  margin-top: var(--s-8);
+  border-top: 1px solid var(--hairline);
+}
 
 .ing { display: grid; margin-top: var(--s-3); }
 
@@ -338,79 +346,100 @@
 /* Copy left, offer right. The card is the only cream surface in a band that
    is otherwise a full field of the product colour, so it is the first thing
    the eye lands on when the band scrolls in. */
+/* ==========================================================================
+   The closing CTA.
+
+   Two columns. Left is the reading order in full: kicker, title, one line,
+   the buy card. Right is the bottle alone. The band takes its height from the
+   left column; nothing here carries a fixed or minimum height.
+
+   Depth is the repo's rule: none from blur. The one drop-shadow is on the
+   cut-out itself, grounding a photographic object, not faking a layer.
+   ========================================================================== */
+
 .rit {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: var(--s-8);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: var(--s-9);
+  align-items: center;
+}
+
+/* ------------------------------------------------------------ the argument */
+
+.rit__copy {
+  display: grid;
+  justify-items: start;
 }
 
 .rit__title { margin-top: var(--s-3); }
 
-.rit__steps {
+/* One line under the title, not a paragraph under a hairline at the foot of
+   the band. Capped at the card's width so the two read as one column. */
+.rit__desc {
+  max-width: 28rem;
+  margin-top: var(--s-4);
+  opacity: 0.85;
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------------- the stage */
+
+.rit__stage {
   display: grid;
-  gap: var(--s-4);
-  margin-top: var(--s-6);
-  padding-top: var(--s-5);
-  border-top: 1.5px solid rgba(35, 31, 26, 0.22);
-  max-width: 26em;
+  place-items: center;
 }
 
-.rit__step {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--s-4);
-  align-items: baseline;
+/* Sized by the column, capped so it never outgrows the copy beside it. Leans
+   five degrees at rest, which is the first word of the kicker; the lean is a
+   layout choice and stays under reduced motion. */
+.rit__bottle {
+  width: min(100%, 24rem);
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  transform: rotate(-5deg);
+  filter: drop-shadow(0 1.75rem 2rem rgba(35, 31, 26, 0.26));
+  pointer-events: none;
+  will-change: transform;
 }
 
-.rit__step-n { font-weight: 600; opacity: 0.55; }
-.rit__step-t { text-wrap: balance; }
-
-.rit__std {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-2);
-  align-content: start;
-  margin-top: var(--s-7);
-}
-
-.rit__std li {
-  padding: 0.7em 1em;
-  border-radius: var(--radius-chip);
-  background: rgba(35, 31, 26, 0.12);
-}
-
-/* ------------------------------------------------------- ritual buy card -- */
+/* ------------------------------------------------------------- the tag */
 
 .rit__cta {
   display: grid;
-  align-self: start;
   gap: var(--s-4);
-  padding: var(--s-6);
+  width: 100%;
+  max-width: 28rem;
+  margin-top: var(--s-6);
+  padding: var(--s-5) var(--s-6);
   border-radius: var(--radius-card);
   background: var(--cream);
 }
 
-.rit__cta-pack { margin-top: calc(var(--s-2) * -1); }
+/* Pack on the left, price on the right, one row. */
+.rit__cta-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.rit__cta-pack { margin-top: var(--s-1); }
 
 .rit__cta-price {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s-3);
-  flex-wrap: wrap;
+  display: grid;
+  justify-items: end;
+  text-align: end;
 }
 
 .rit__cta-unit { font-weight: 500; }
 
 .rit__cta-days {
   display: grid;
-  gap: var(--s-3);
+  gap: var(--s-2);
   padding-top: var(--s-4);
   border-top: 1px solid var(--hairline);
 }
 
-/* The same bar the pack ladder uses, so the two readings of the 30 day
-   number look like one idea rather than two charts. */
 .rit__cta-bar {
   height: 0.5em;
   border-radius: var(--radius-pill);
@@ -431,13 +460,82 @@
   font-weight: 600;
 }
 
-.rit__cta-fine { text-wrap: pretty; }
+.rit__cta-fine {
+  display: grid;
+  gap: var(--s-1);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--hairline);
+  color: var(--muted);
+  text-wrap: pretty;
+}
 
-.rit__statement {
-  max-width: 44em;
+/* ----------------------------------------------------------- the standards */
+
+.rit__std {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) 0;
   margin-top: var(--s-8);
   padding-top: var(--s-5);
   border-top: 1.5px solid rgba(35, 31, 26, 0.22);
+}
+
+.rit__std li {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.rit__std-mark {
+  margin-inline: var(--s-4);
+  opacity: 0.55;
+}
+
+/* ---------------------------------------------------------------- narrow */
+
+@media (max-width: 991px) {
+  .rit {
+    grid-template-columns: 1fr;
+    gap: var(--s-7);
+  }
+  /* The bottle goes above the copy on one column: the object first, then
+     what it is and how to buy it. */
+  .rit__stage {
+    order: -1;
+  }
+  .rit__bottle {
+    width: min(55%, 16rem);
+  }
+  .rit__cta,
+  .rit__desc {
+    max-width: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .rit__cta-row {
+    flex-direction: column;
+    align-items: start;
+  }
+  .rit__cta-price {
+    justify-items: start;
+    text-align: start;
+  }
+  .rit__std {
+    flex-direction: column;
+    align-items: start;
+    gap: var(--s-2);
+  }
+  .rit__std-mark {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rit__bottle {
+    will-change: auto;
+  }
 }
 
 @media (max-width: 61.9375em) {

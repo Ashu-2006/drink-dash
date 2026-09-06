@@ -109,16 +109,6 @@
 
 .pcard__name { margin-top: var(--s-1); }
 
-.pcard__hero {
-  display: inline-block;
-  align-self: start;
-  padding: 0.35em 0.7em;
-  border-radius: var(--radius-chip);
-  background: var(--theme-base);
-  font-weight: 600;
-  font-size: 0.85em;
-}
-
 .pcard__line { color: var(--muted); }
 
 .pcard__meta {
@@ -246,42 +236,227 @@
 
 /* ------------------------------------------------------------- ladder ---- */
 
-.rungs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14em, 1fr));
-  gap: var(--s-4);
+/* The ladder.
+
+   One thirty day axis, drawn once, with three packs laid along it. It was
+   three cards each holding its own full width bar, which is three charts
+   rather than one comparison: lengths that do not share a baseline cannot be
+   read against each other.
+
+   Four columns on every row, so the tier, the track, the verdict and the unit
+   price line up down the section and the finish line is in the same place for
+   all three. Below 48em they stack, and the finish line stays, because the
+   finish line is the point of the section.
+
+   The marks are decorative and hidden from the accessibility tree. The
+   verdict beside them carries the same fact in words. */
+
+.ladder {
+  --rung-cols: minmax(7rem, 10rem) minmax(0, 1fr) 8.5rem 7rem;
+  /* One number for the height of a day. The marks read it, and so does the
+     bottle, so the two can never disagree about how tall a day is. */
+  --pip-h: 2.75em;
   margin-top: var(--s-8);
 }
 
+.ladder__scale,
 .rung {
-  padding: var(--s-5);
-  border-radius: var(--radius-card);
+  display: grid;
+  grid-template-columns: var(--rung-cols);
+  gap: var(--s-5);
+  align-items: center;
+}
+
+.ladder__scale {
+  padding-inline: var(--s-5);
+  margin-bottom: var(--s-3);
+}
+
+/* Column two, so the day numbers sit over the track they label rather than
+   over the row. */
+.ladder__ends {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ladder__rows {
+  display: grid;
+  gap: var(--s-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.rung {
+  padding: var(--s-6) var(--s-5);
+  /* A card radius at 2rem was rounder than the marks it contained. */
+  border-radius: var(--radius-media);
   background: var(--glow-soft);
 }
 
-.rung--covers { background: var(--glow-base); }
-
-.rung__days { margin-top: var(--s-3); }
-.rung__days .t-data { font-size: inherit; font-weight: 600; }
-
-.rung__bar {
-  height: 0.5em;
-  margin-top: var(--s-4);
-  border-radius: var(--radius-pill);
-  background: rgba(35, 31, 26, 0.16);
-  overflow: hidden;
+/* The one pack that answers the question the section asks. Inverted, so it is
+   the answer and the other two are the working. */
+.rung--covers {
+  background: var(--ink);
+  color: var(--cream);
 }
 
-.rung__bar span {
+.rung__tier {
+  opacity: 0.7;
+}
+
+.rung__count {
+  margin-top: var(--s-1);
+  font-weight: 600;
+}
+
+.rung__count .t-data {
+  font-size: 1.35em;
+  font-weight: 600;
+}
+
+/* ---- the track ---- */
+
+.rung__track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--days, 30), minmax(0, 1fr));
+  gap: 0.2em;
+  align-items: center;
+  /* Day thirty, drawn as a finish line every row is measured to. The padding
+     keeps the last mark off it so a full pack reads as arriving rather than
+     as colliding. */
+  padding-right: var(--s-3);
+  border-right: 0.14em solid var(--ink);
+}
+
+.rung--covers .rung__track {
+  border-right-color: var(--cream);
+}
+
+/* Row AND column, both explicit. Pinning only the column was half a fix: an
+   item with a definite column but an auto row is still auto placed, so the
+   mark sharing the bottle's day was pushed to row two, and every mark after
+   it followed the cursor down there. That is the staircase. Two items may
+   only occupy one cell when both are placed outright, which needs both axes
+   named. */
+.pip {
+  grid-row: 1;
+  height: var(--pip-h);
+  overflow: hidden;
+  border-radius: 0.18em;
+  background: rgba(35, 31, 26, 0.12);
+}
+
+.rung--covers .pip {
+  background: rgba(255, 253, 246, 0.16);
+}
+
+/* Lit is the resting state. The tween runs fromTo out of scaleX 0, so a
+   script that never runs leaves a correct static chart rather than an empty
+   one. */
+.pip__ink {
   display: block;
   height: 100%;
   background: var(--ink);
-  border-radius: inherit;
+  transform: scaleX(1);
+  transform-origin: left center;
 }
 
-.rung__unit { margin-top: var(--s-4); font-weight: 600; }
+.rung--covers .pip__ink {
+  background: var(--glow-base);
+}
+
+/* The pack's last day, drawn as the shot you take on it.
+
+   The source is a 900 square cut-out whose visible bottle measures 563 by 779,
+   so the artwork fills 86.6% of the box's height and its own aspect is 0.723.
+   To make the VISIBLE bottle exactly one cell tall the box has to be
+   1 / 0.866 = 1.1553 cells tall, which is what this is. Width follows from the
+   aspect and comes out wider than a single column: that is the bottle's own
+   proportion, not a sizing slip, and the column is minmax(0, 1fr) so it cannot
+   be pushed out of shape by it.
+
+   Measured, not guessed. If the asset is ever re-exported with different
+   margins these two numbers are the ones to re-measure. */
+.rung__bottle {
+  /* Shares its cell with the mark for the same day. Legal only because every
+     mark is explicitly placed too; auto placement refuses to double up. */
+  grid-row: 1;
+  grid-column: var(--n);
+  justify-self: center;
+  align-self: center;
+  position: relative;
+  z-index: 1;
+  height: calc(var(--pip-h) * 1.1553);
+  width: auto;
+  max-width: none;
+  pointer-events: none;
+}
+
+/* ---- the read out ---- */
+
+/* The answer to the question the row asks, so it carries the same weight as
+   the count it is answering about. It was set at body-s, which made the
+   punchline the quietest thing on the row. */
+.rung__verdict {
+  font-size: var(--size-font);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.rung--covers .rung__verdict {
+  /* 6.79 on ink, the same pairing the tokens already clear for text. */
+  color: var(--glow-base);
+}
+
+/* Figure over label. The figure is what is being compared down the column,
+   so it holds the line on its own and never breaks. */
+.rung__unit {
+  display: grid;
+  justify-items: end;
+  gap: 0.1em;
+}
+
+.rung__price {
+  font-size: 1.15em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rung__per {
+  color: var(--muted);
+}
+
+.rung--covers .rung__per {
+  color: rgba(255, 253, 246, 0.66);
+}
 
 .ladder__note { max-width: 42em; margin-top: var(--s-6); }
+
+@media (max-width: 47.99em) {
+  .ladder {
+    --rung-cols: minmax(0, 1fr);
+  }
+  .rung {
+    gap: var(--s-3);
+    justify-items: start;
+  }
+  .rung__track {
+    width: 100%;
+  }
+  .ladder {
+    --pip-h: 2.25em;
+  }
+  .rung__unit {
+    justify-items: start;
+  }
+  .ladder__ends {
+    grid-column: 1;
+    width: 100%;
+  }
+}
 
 /* ------------------------------------------------------------ diaries ---- */
 
