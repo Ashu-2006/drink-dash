@@ -1,0 +1,449 @@
+/* ==========================================================================
+   Playground: the dial rack and the five buy columns.
+
+   Motion technique is from transitions-dev, every value is from
+   styles/tokens.css. Its own :root block is not imported and none of its
+   --acc-*, --dropdown-* or --tt-* names appear here.
+
+     open   --dur-3          its Fast tier
+     close  --dur-1          its Quick tier: closes run faster than opens
+     curve  --ease-smooth    this repo's smooth ease out
+     arrive --ease-soft-overshoot, for a surface landing rather than sliding
+   ========================================================================== */
+
+.pg {
+  --pg-gap: var(--s-4);
+}
+
+/* ------------------------------------------------------------------ dials */
+
+.pg__dials {
+  position: sticky;
+  top: 4.5rem;
+  z-index: 30;
+  padding-block: var(--s-4);
+  background: var(--cream);
+  border-bottom: var(--hairline-width) solid var(--hairline);
+}
+
+.pg__dials-in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  align-items: flex-start;
+}
+
+.pg__dial {
+  display: grid;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.pg__dial-label {
+  display: block;
+}
+
+.pg__keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border-radius: var(--radius-pill);
+  background: rgba(35, 31, 26, 0.06);
+}
+
+.pg__key {
+  padding: 0.45em 0.9em;
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  white-space: nowrap;
+  /* A key is pressed dozens of times a session, so it stays in the fast tier.
+     Anything slower here reads as lag rather than as motion. */
+  transition:
+    background var(--dur-1) var(--ease-click),
+    color var(--dur-1) var(--ease-click);
+}
+
+.pg__key:hover {
+  color: var(--ink);
+}
+
+.pg__key.is-on {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.pg__readout {
+  display: grid;
+  gap: var(--s-1);
+  max-width: 52rem;
+  margin-top: var(--s-4);
+}
+
+.pg__readout-note {
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------ stage */
+
+.pg__stage--compact {
+  --pg-gap: var(--s-3);
+}
+
+/* The Motion dial, forced. Same shape as the media query below it, so what
+   the dial shows is what somebody with the OS setting on actually gets. */
+.pg__stage--still *,
+.pg__stage--still *::before,
+.pg__stage--still *::after {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+}
+
+/* -------------------------------------------------------------- the section */
+
+.pgb {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-8);
+  align-items: start;
+}
+
+.pgb__media {
+  position: sticky;
+  top: 9rem;
+  min-width: 0;
+}
+
+.pgb__shot {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  background: var(--theme-soft);
+}
+
+/* The cut-outs carry their own transparency, so they get no plate and no
+   crop: just the shadow that lifts them off the band. */
+.pgb__shot--cutout {
+  object-fit: contain;
+  border-radius: 0;
+  background: none;
+  filter: drop-shadow(0 1.5rem 2rem rgba(35, 31, 26, 0.2));
+}
+
+.pgb__thumbs {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+
+.pgb__thumb {
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: var(--radius-media);
+  /* Inset, so the ring does not shift the strip when it appears. */
+  box-shadow: inset 0 0 0 var(--hairline-width) rgba(35, 31, 26, 0.18);
+  transition: box-shadow var(--dur-1) var(--ease-click);
+}
+
+.pgb__thumb.is-on {
+  box-shadow: inset 0 0 0 0.16em var(--ink);
+}
+
+.pgb__thumb img {
+  width: 5.5em;
+  height: 5.5em;
+  object-fit: cover;
+  border-radius: var(--radius-media);
+}
+
+.pgb__buy {
+  min-width: 0;
+}
+
+.pgb__buy > * + * {
+  margin-top: var(--pg-gap);
+}
+
+.pgb__name {
+  margin-top: var(--s-2);
+}
+
+.pgb__flavour {
+  font-weight: 600;
+}
+
+.pgb__line {
+  max-width: 30em;
+}
+
+.pgb__actives {
+  display: grid;
+  gap: var(--s-2);
+}
+
+.pgb__actives li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-block: var(--s-2);
+  border-bottom: var(--hairline-width) solid var(--hairline);
+}
+
+.pgb__ritual {
+  display: grid;
+  gap: var(--s-2);
+  padding-left: var(--s-5);
+}
+
+.pgb__ritual li {
+  list-style: disc;
+}
+
+.pgb__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.pgb__discs {
+  display: grid;
+  gap: var(--s-2);
+}
+
+/* ---- 2 decision first ---- */
+
+.pgb__pricebar {
+  display: grid;
+  gap: var(--s-1);
+}
+
+/* Keyed on the sku in the component, so this runs whenever the number
+   changes. A price that swaps silently is how a total surprises somebody two
+   screens later. Distance is small on purpose: this is a correction to the
+   reader's attention, not an entrance. */
+.pgb__bigprice {
+  display: block;
+  animation: pgb-price var(--dur-3) var(--ease-soft-overshoot) both;
+}
+
+@keyframes pgb-price {
+  from {
+    opacity: 0;
+    transform: translateY(0.25em);
+  }
+}
+
+.pgb__rule {
+  border: 0;
+  border-top: var(--hairline-width) solid var(--hairline);
+  margin-block: var(--s-2);
+}
+
+/* ---- 3 sheet ---- */
+
+.pgb__sheetbtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--hit-target);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--radius-card);
+  font-weight: 600;
+  text-align: left;
+  background: var(--theme-soft);
+  transition: background var(--dur-1) var(--ease-click);
+}
+
+.pgb__sheetbtn:hover {
+  background: var(--theme-pale);
+}
+
+.pgb__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(35, 31, 26, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-1) var(--ease-smooth);
+}
+
+.pgb__scrim.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mounted at all times and toggled by one class, so there is no closing state
+   to clean up and the next open never starts from a half dismissed
+   transform. */
+.pgb__sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 61;
+  width: min(38rem, calc(100% - var(--s-5) * 2));
+  max-height: 82vh;
+  overflow-y: auto;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--cream);
+  box-shadow: 0 -1rem 3rem rgba(35, 31, 26, 0.24);
+  transform: translate(-50%, 101%);
+  transition: transform var(--dur-1) var(--ease-smooth);
+}
+
+.pgb__sheet.is-open {
+  transform: translate(-50%, 0);
+  transition: transform var(--dur-3) var(--ease-soft-overshoot);
+}
+
+.pgb__sheet-in {
+  display: grid;
+  gap: var(--s-3);
+  padding: var(--s-5);
+}
+
+.pgb__sheet-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: var(--hairline-width) solid var(--hairline);
+}
+
+.pgb__sheet-x {
+  min-height: var(--hit-target);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+/* ---- 4 tabs ---- */
+
+.pgb__tabs {
+  position: relative;
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+  border-radius: var(--radius-pill);
+  background: rgba(35, 31, 26, 0.08);
+}
+
+/* No transition until the pill has been measured and painted once, or it
+   slides in from zero width on load. */
+.pgb__pill {
+  position: absolute;
+  top: 0.2rem;
+  left: 0;
+  bottom: 0.2rem;
+  border-radius: var(--radius-pill);
+  background: var(--cream);
+}
+
+.pgb__tabs[data-ready="true"] .pgb__pill {
+  transition:
+    transform var(--dur-3) var(--ease-smooth),
+    width var(--dur-3) var(--ease-smooth);
+}
+
+.pgb__tab {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: var(--hit-target);
+  padding: 0.45em 0.9em;
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  transition: color var(--dur-1) var(--ease-click);
+}
+
+.pgb__tab.is-on {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* A floor, so switching pane never moves the trust row underneath it. That is
+   the whole argument for a swap over an expand. */
+.pgb__pane {
+  min-height: 11rem;
+}
+
+.pgb__pane-proof {
+  display: grid;
+  gap: var(--s-2);
+}
+
+/* ---- 5 commit bar ---- */
+
+.pgb__bar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--s-5);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  width: min(34rem, calc(100% - var(--s-5) * 2));
+  padding: var(--s-3) var(--s-3) var(--s-3) var(--s-5);
+  border-radius: var(--radius-pill);
+  background: var(--cream);
+  box-shadow: 0 1rem 2.5rem rgba(35, 31, 26, 0.26);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 1rem);
+  transition:
+    opacity var(--dur-1) var(--ease-smooth),
+    transform var(--dur-3) var(--ease-soft-overshoot);
+}
+
+.pgb__bar.is-out {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.pgb__bar-id {
+  display: grid;
+  min-width: 0;
+}
+
+.pgb__bar-price {
+  margin-left: auto;
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------- narrow */
+
+@media (max-width: 991px) {
+  .pgb {
+    grid-template-columns: 1fr;
+    gap: var(--s-6);
+  }
+  .pgb__media {
+    position: static;
+  }
+  .pg__dials {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg__key,
+  .pgb__thumb,
+  .pgb__sheetbtn,
+  .pgb__scrim,
+  .pgb__sheet,
+  .pgb__sheet.is-open,
+  .pgb__tabs[data-ready="true"] .pgb__pill,
+  .pgb__tab,
+  .pgb__bar {
+    transition: none;
+  }
+  .pgb__bigprice {
+    animation: none;
+  }
+}

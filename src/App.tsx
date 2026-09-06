@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Product from "./pages/Product";
 import Previous from "./pages/Previous";
+import Playground from "./pages/Playground";
 import DashLife from "./pages/DashLife";
 import Diaries from "./pages/Diaries";
 import Diary from "./pages/Diary";
@@ -49,6 +50,9 @@ function Shell() {
           <Route path="/checkout/:stage" element={<Checkout />} />
           {/* The archived first iteration, kept for comparison. */}
           <Route path="/previous" element={<Previous onAdd={cart.add} />} />
+          {/* A workbench, not a page of the site. Unlinked from the nav on
+              purpose: it exists to compare takes on one section. */}
+          <Route path="/playground" element={<Playground onAdd={cart.add} />} />
           {/* A wrong URL used to silently render the home page, which tells a
               visitor their link worked when it did not. */}
           <Route path="*" element={<NotFound />} />

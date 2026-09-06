@@ -62,25 +62,34 @@
   color: var(--cream);
 }
 
-/* Above the mark texture. */
 .hiw__inner {
   position: relative;
-  z-index: 1;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto auto auto;
   gap: var(--s-2);
   height: 100%;
-  padding: clamp(var(--s-4), 1.4vw, var(--s-5));
+  /* The padding is a variable because the figure has to undo it. In the fan
+     the cards with a neighbour on top carry extra end padding to clear the
+     overlap, and the figure has to undo that too, so there are two. */
+  --hiw-pad: clamp(var(--s-4), 1.4vw, var(--s-5));
+  --hiw-pad-end: var(--hiw-pad);
+  padding: var(--hiw-pad) var(--hiw-pad-end) var(--hiw-pad) var(--hiw-pad);
 }
 
 .hiw__step {
   opacity: 0.7;
 }
 
+/* Inset by the card padding on both sides, with its own radius. The one
+   thing it undoes is the extra end padding a card carries when another card
+   overlaps it: without that, the three covered cards showed a narrower
+   picture than the last one and the deck read as four different frames. The
+   picture runs under the overlap instead, and every card frames it the same. */
 .hiw__figure {
   overflow: hidden;
   min-height: 0;
   margin-block: var(--s-3);
+  margin-inline-end: calc((var(--hiw-pad-end) - var(--hiw-pad)) * -1);
   border-radius: var(--radius-media);
   background: rgba(35, 31, 26, 0.06);
 }
@@ -102,6 +111,9 @@
   font-size: clamp(1.5rem, 1.5vw + 0.65rem, 2.25rem);
   line-height: 1;
   overflow-wrap: break-word;
+  /* "What that adds up to" was breaking as four words and an orphaned
+     "to". Balance splits the two lines evenly instead. */
+  text-wrap: balance;
 }
 
 .hiw__line {
@@ -159,9 +171,7 @@
        inline before it writes the variables: --ease-smooth on the way in and
        --ease-bounce on the way back. The duration is the only thing fixed
        here. */
-    transition:
-      transform var(--dur-4) var(--ease-smooth),
-      box-shadow var(--dur-3) var(--ease-smooth);
+    transition: transform var(--dur-4) var(--ease-smooth);
     will-change: transform;
   }
 
@@ -172,16 +182,11 @@
   /* Only the cards with something on top of them are held clear of it. The
      last one has the row to itself. */
   .hiw__card:not(:last-child) .hiw__inner {
-    padding-inline-end: calc(clamp(var(--s-4), 1.4vw, var(--s-5)) + var(--hiw-lap));
+    --hiw-pad-end: calc(var(--hiw-pad) + var(--hiw-lap));
   }
 
-  /* The pointed at card gets a ring rather than a shadow. Depth in this
-     system comes from bands overlapping, never from a blur, and the only
-     box-shadow allowed is the focus ring and its inset cousins. The lift, the
-     straightening and the neighbours moving away already say "in front". */
-  .hiw__card:hover {
-    box-shadow: inset 0 0 0 2px currentColor;
-  }
+  /* No ring and no shadow on the pointed at card. The lift, the
+     straightening and the neighbours moving away are the whole hover. */
 
   /* In the fan a long paragraph squeezes the flexible row the figure sits
      in. The figure keeps a floor and the photo gives up its own, so the
@@ -199,6 +204,4 @@
   .hiw__card {
     transition: none;
   }
-  /* The comb never runs under reduced motion (the component checks), so
-     the ring is the whole hover state. */
 }

@@ -33,7 +33,6 @@
 import { useCallback, useRef } from "react";
 import type { CSSProperties } from "react";
 import { Reveal } from "./primitives";
-import { MarkTexture } from "./Mark";
 import { img, type MediaKey } from "../lib/media";
 import { BRAND } from "../lib/catalog";
 import "./howitworks.css";
@@ -235,7 +234,6 @@ export function StepDeck({ steps, label }: { steps: DeckStep[]; label?: string }
             style={fanStyle(i, steps.length)}
             onMouseEnter={onEnter(i)}
           >
-            <MarkTexture tile={110} angle={-14} opacity={0.07} />
             <div className="hiw__inner">
               <p className="t-label hiw__step">Step {i + 1}</p>
 

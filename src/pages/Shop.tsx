@@ -177,10 +177,17 @@ function ConcernRail() {
     measure();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    /* A window resize is not the only thing that moves these edges. Images
+       land late and the bands grow under the reader, which on a first load is
+       exactly when the rail would otherwise arrive at the wrong moment. */
+    const ro = new ResizeObserver(onScroll);
+    ro.observe(first);
+    ro.observe(compare);
     return () => {
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      ro.disconnect();
     };
   }, []);
 
